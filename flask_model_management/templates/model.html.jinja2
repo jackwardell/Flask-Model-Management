@@ -1,0 +1,34 @@
+{% extends 'base.html.jinja2' %}
+
+{% block title %}
+    <h1>{{ model.name }}</h1>
+{% endblock %}
+
+{% block main %}
+    <table class="table table-bordered table-striped" id="table">
+        <thead>
+        <tr>
+            {% for col in model.columns %}
+                <th>{{ col.name }}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in model.all() %}
+            <tr>
+                {% for col in model.columns %}
+                    <td>{{ item[col.name] }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(document).ready(function () {
+            $('#table').DataTable();
+        });
+    </script>
+{% endblock %}
