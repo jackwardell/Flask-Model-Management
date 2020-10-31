@@ -1,11 +1,11 @@
 import contextlib
 import os
 import tempfile
-from flask_debugtoolbar import DebugToolbarExtension
 
-import pytest
 from flask import Flask
+from flask_debugtoolbar import DebugToolbarExtension
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Boolean
 from sqlalchemy import Column
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
@@ -22,21 +22,21 @@ toolbar = DebugToolbarExtension()
 Base = declarative_base()
 
 USERS = [
-    ("hello", "world", "hello.world@mail.com"),
-    ("goodbye", "world", "gb@aol.com"),
-    ("another", "person", "lol@gg.co"),
+    ("hello", "world", True, "hello.world@mail.com"),
+    ("goodbye", "world", False, "gb@aol.com"),
+    ("another", "person", False, "lol@gg.co"),
 ]
 
 
-# class Plugin:
-#     def __init__(self, module):
-#         self.module = module
-#
-#     @property
-#     def base(self):
-#         return db.Model
-#
-#     def __getattr__(self, item):
+# # class Plugin:
+# #     def __init__(self, module):
+# #         self.module = module
+# #
+# #     @property
+# #     def base(self):
+# #         return db.Model
+# #
+# #     def __getattr__(self, item):
 #         return getattr(self.module, item)
 
 
@@ -46,9 +46,10 @@ USERS = [
 class User(db.Model):
     __tablename__ = "user"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     first_name = Column(String)
     last_name = Column(String)
+    is_admin = Column(Boolean, default=False, nullable=False)
 
     addresses = relationship("Address", back_populates="user")
 
@@ -70,8 +71,8 @@ class Address(db.Model):
 
 
 def populate(session):
-    for user_id, (first_name, last_name, email_address) in enumerate(USERS):
-        session.add(User(first_name=first_name, last_name=last_name))
+    for user_id, (first_name, last_name, is_admin, email_address) in enumerate(USERS):
+        session.add(User(first_name=first_name, last_name=last_name, is_admin=is_admin))
         session.add(Address(user_id=user_id, email_address=email_address))
     session.commit()
 
@@ -108,7 +109,6 @@ def engine_context(url):
     engine = create_engine(url, echo=True)
     yield engine
     engine.dispose()
-
 
 # @pytest.fixture(scope="function")
 # def app():

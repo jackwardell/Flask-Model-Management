@@ -1,3 +1,5 @@
+{% from 'macros.html.jinja2' import operation_colour %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,7 +24,6 @@
 
     {# feather #}
     <script src="https://unpkg.com/feather-icons"></script>
-
 
     <style>
         .bd-placeholder-img {
@@ -149,7 +150,7 @@
 <body>
 
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="#">Flask Model Management</a>
+    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="{{ get_url('index') }}">Flask Model Management</a>
     <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -159,24 +160,33 @@
     <div class="row">
         <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
             <div class="sidebar-sticky pt-3">
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mb-2 mt-3 text-muted">
+                    <span>Models Under Management</span>
+                </h6>
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link {% if is_endpoint('index') %}active{% endif %}" href="{{ get_url('index') }}">
+                        <a class="nav-link {% if is_url('index') %}active{% endif %}" href="{{ get_url('index') }}">
                             <span data-feather="home"></span>Dashboard
                         </a>
                     </li>
-                </ul>
-                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                    <span>Models Under Management</span>
-                </h6>
-                <ul class="nav flex-column mb-2">
-                    {% for model in models %}
+                    {% for m in models %}
                         <li class="nav-item">
-                            <a class="nav-link {% if is_endpoint(model.endpoint) %}active{% endif %}" href="{{ get_url(model.endpoint) }}">
+                            <a class="nav-link {% if is_url(m.endpoint) %}active{% endif %}" href="{{ get_url(m.endpoint) }}">
                                 <span data-feather="database"></span>
-                                {{ model.name }}
+                                {{ m.name }}
                             </a>
                         </li>
+                        {% if model %}
+                            {% if model.endpoint == m.endpoint %}
+                                <li>
+                                    <ul>
+                                        {% for operation in m.operations %}
+                                            <li><a class="nav-link {% if get_url(model.endpoint, path=("/" + operation.name)) == request.path %}active{% endif %}" href="{{ get_url(model.endpoint, path=("/" + operation.name)) }}">{{ operation.name | title }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                            {% endif %}
+                        {% endif %}
                     {% endfor %}
                 </ul>
             </div>
@@ -186,7 +196,15 @@
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
 
                 {% block title %}
-                    <h1 class="h2">Dashboard</h1>
+                    {% if operation %}
+                        <h1>{{ operation.name | title }} {{ model.name }}</h1>
+                    {% else %}
+                        {% if model %}
+                            <h1>{{ model.name }} Dashboard</h1>
+                        {% else %}
+                            <h1>Dashboard</h1>
+                        {% endif %}
+                    {% endif %}
                 {% endblock %}
 
                 <div class="btn-toolbar mb-2 mb-md-0">
@@ -200,14 +218,28 @@
                 </div>
 
             </div>
-            {% if not is_endpoint('index') %}
-                <div class="d-flex justify-content-between pb-3 mb-3 border-bottom">
-                    <a href="{{ get_url(model.endpoint, path="/create") }}" class="btn btn-success" role="button" style="width: 100px">Create</a>
-                    <a href="{{ get_url(model.endpoint, path="/read") }}" class="btn btn-primary" role="button" style="width: 100px">Read</a>
-                    <a href="{{ get_url(model.endpoint, path="/update") }}" class="btn btn-warning" role="button" style="width: 100px">Update</a>
-                    <a href="{{ get_url(model.endpoint, path="/delete") }}" class="btn btn-danger" role="button" style="width: 100px">Delete</a>
-                </div>
-            {% endif %}
+            <div class="mb-3 border-bottom">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        {% if is_url('index') %}
+                            <li class="breadcrumb-item active">Models Under Management</li>
+                        {% else %}
+                            <li class="breadcrumb-item"><a href="{{ get_url('index') }}">Models Under Management</a></li>
+                            <li class="breadcrumb-item {% if not operation %}active{% endif %}">{% if operation %}<a href="{{ get_url(model.endpoint) }}">{% endif %}{{ model.name }}{% if operation %}</a>{% endif %}</li>
+                            {% if operation %}
+                                <li class="breadcrumb-item active">{{ ( operation.name | title ) }}</li>
+                            {% endif %}
+                        {% endif %}
+                    </ol>
+                </nav>
+            </div>
+            {#            {% if model %}#}
+            {#                <div class="d-flex justify-content-between pb-3 mb-3 border-bottom">#}
+            {#                    {% for operation in model.operations %}#}
+            {#                        <a href="{{ get_url(model.endpoint, path="/" + operation.name) }}" class="btn btn-{{ operation_colour(operation.name) }}" role="button" style="width: 100px">{{ operation.name | title }}</a>#}
+            {#                    {% endfor %}#}
+            {#                </div>#}
+            {#            {% endif %}#}
             {% block main %}
             {% endblock %}
         </main>

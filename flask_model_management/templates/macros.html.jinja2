@@ -1,0 +1,3 @@
+{% macro operation_colour(name) -%}
+    {% if name == 'create' %}success{% elif name == 'delete' %}danger{% elif name == 'read' %}primary{% else %}warning{% endif %}
+{%- endmacro %}
