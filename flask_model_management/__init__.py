@@ -1,13 +1,17 @@
 import os
 from pathlib import Path
 
-from flask import Blueprint
 from flask import render_template
-from flask import request, g
+from flask import request
 from flask import url_for
+from flask_simpleview import Blueprint
+from flask_simpleview import SimpleView
 from flask_wtf import FlaskForm
-from wtforms import IntegerField, BooleanField
-from wtforms import StringField, SubmitField
+from wtforms import BooleanField
+from wtforms import HiddenField
+from wtforms import IntegerField
+from wtforms import StringField
+from wtforms import SubmitField
 
 THIS_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 TEMPLATES_DIR = THIS_DIR / "templates"
@@ -48,12 +52,15 @@ class Type:
 
 
 class Column:
-    def __init__(self, key, name, type_, required=True, default=None):
+    def __init__(
+        self, key, name, type_, required=True, default=None, primary_key=False
+    ):
         self.key = key
         self.name = name
         self.type = type_
         self.required = required
         self.default = default
+        self.primary_key = primary_key
 
     @classmethod
     def from_col(cls, col):
@@ -63,6 +70,7 @@ class Column:
             Type.from_col_type(col.type),
             required=(not col.nullable),
             default=col.default,
+            primary_key=col.primary_key,
         )
         return column
 
@@ -77,7 +85,41 @@ class Column:
         return f"Column('{self.name}', key='{self.key}', type='{self.type}')"
 
 
-class Operation:
+class Row:
+    def __init__(self, **kwargs):
+        self.result = kwargs
+
+    def __getattr__(self, item):
+        return self.result[item]
+
+    def to_dict(self):
+        return self.result
+
+    @classmethod
+    def from_row(cls, row):
+        kwargs = {}
+        for col in row.__table__.columns:
+            if col.primary_key is True:
+                kwargs["pk"] = col.name
+            kwargs[col.name] = getattr(row, col.name)
+
+        return cls(**kwargs)
+
+
+class Entity:
+    @property
+    def route(self):
+        raise NotImplementedError()
+
+    @property
+    def endpoint(self):
+        raise NotImplementedError()
+
+    def dispatch_request(self):
+        raise NotImplementedError()
+
+
+class Operation(Entity):
     def __init__(self, model, operation):
         self.model = model
         self.name = operation
@@ -94,14 +136,69 @@ class Operation:
     def endpoint(self):
         return self.model.endpoint + "_" + self.name
 
-    def render_template(self):
-        return render_template(self.template, model=self.model, operation=self)
+    def make_form(self, multi_dict):
+        form = type("Form", (FlaskForm,), {})
 
-    def dispatch_request(self):
-        return render_template(self.template, model=self.model, operation=self)
+        for col in self.model.columns:
+            setattr(form, col.name, col.field())
+
+        setattr(form, "pk", HiddenField("pk"))
+        setattr(form, "submit", SubmitField("submit"))
+
+        form.hidden_fields = ["CSRF Token", "submit", "pk"]
+        return form(multi_dict)
+
+    # def dispatch_request(self):
+    #
+    #     pk = request.args.get(request.args.get("pk"))
+    #
+    #     if request.method == "POST":
+    #         params = request.form
+    #     else:
+    #         params = request.args
+    #
+    #     form = self.make_form(params)
+    #
+    #     model = self.model.query.get(pk)
+    #
+    #     if model:
+    #         for column in model.__table__.columns:
+    #             setattr(model, column.name, form[column.name].data)
+    #
+    #     return render_template(
+    #         self.template, form=form, model=self.model, operation=self
+    #     )
+
+    def make_view(self):
+        class View(SimpleView):
+            endpoint = self.endpoint
+            rule = self.route
+            template = self.template
+
+            def get(self_):
+                form = self.make_form(request.args)
+                return render_template(
+                    self.template, form=form, model=self.model, operation=self
+                )
+
+            def post(self_):
+                form = self.make_form(request.form)
+
+                pk = request.args.get(request.args.get("pk"))
+                model = self.model.query.get(pk)
+
+                if model:
+                    for column in model.__table__.columns:
+                        setattr(model, column.name, form[column.name].data)
+
+                return render_template(
+                    self.template, form=form, model=self.model, operation=self
+                )
+
+        return View
 
 
-class Model:
+class Model(Entity):
     def __init__(self, model):
         self.model = model
 
@@ -125,24 +222,19 @@ class Model:
     def operations(self):
         return [Operation(self, op) for op in CRUD_OPERATIONS]
 
-    def render_template(self):
-        return render_template(MODEL_TEMPLATE, model=self)
+    @property
+    def primary_key(self):
+        return [c for c in self.columns if c.primary_key].pop()
+
+    @property
+    def query(self):
+        return self.model.query
 
     def dispatch_request(self):
         return render_template(MODEL_TEMPLATE, model=self)
 
     def all(self):
-        return self.model.query.limit(100).all()
-
-    def make_form(self, multi_dict):
-        form = type("Form", (FlaskForm,), {})
-
-        for col in self.columns:
-            setattr(form, col.name, col.field())
-
-        setattr(form, "submit", SubmitField("submit"))
-
-        return form(multi_dict)
+        return [Row.from_row(row) for row in self.model.query.limit(100)]
 
     def __repr__(self):
         return f"Model(table='{self.model.__tablename__}', columns='{self.columns}')"
@@ -154,8 +246,9 @@ class ModelManagement:
         self.url_prefix = url_prefix or URL_PREFIX
         self.models = None
 
-    def get_url(self, endpoint, path=""):
-        return url_for(f"{self.endpoint}.{endpoint}") + path
+    def get_url(self, endpoint, path="", **params):
+        extension = f"_{path}" if path else ""
+        return url_for(f"{self.endpoint}.{endpoint}{extension}", **params)
 
     def is_url(self, endpoint, path=""):
         return self.get_url(endpoint, path=path) == request.path
@@ -182,9 +275,13 @@ class ModelManagement:
             mgmt.add_url_rule(model.route, model.endpoint, model.dispatch_request)
 
             for operation in model.operations:
-                mgmt.add_url_rule(
-                    operation.route, operation.endpoint, operation.dispatch_request,
-                )
+                mgmt.add_view(operation.make_view())
+                # mgmt.add_url_rule(
+                #     operation.route,
+                #     operation.endpoint,
+                #     operation.dispatch_request,
+                #     methods=("GET", "POST"),
+                # )
 
         app.register_blueprint(mgmt)
 

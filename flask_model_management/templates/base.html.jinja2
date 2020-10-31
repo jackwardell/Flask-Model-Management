@@ -181,7 +181,7 @@
                                 <li>
                                     <ul>
                                         {% for operation in m.operations %}
-                                            <li><a class="nav-link {% if get_url(model.endpoint, path=("/" + operation.name)) == request.path %}active{% endif %}" href="{{ get_url(model.endpoint, path=("/" + operation.name)) }}">{{ operation.name | title }}</a></li>
+                                            <li><a class="nav-link {% if get_url(model.endpoint, path=operation.name) == request.path %}active{% endif %}" href="{{ get_url(model.endpoint, path=operation.name) }}">{{ operation.name | title }}</a></li>
                                         {% endfor %}
                                     </ul>
                                 </li>

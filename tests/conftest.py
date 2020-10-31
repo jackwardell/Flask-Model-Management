@@ -2,6 +2,7 @@ import contextlib
 import os
 import tempfile
 
+import pytest
 from flask import Flask
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_sqlalchemy import SQLAlchemy
@@ -110,13 +111,13 @@ def engine_context(url):
     yield engine
     engine.dispose()
 
-# @pytest.fixture(scope="function")
-# def app():
-#     with sqlalchemy_url() as url:
-#         app = create_app()
-#         with app.app_context():
-#             db.create_all()
-#             yield app.test_client()
+
+@pytest.fixture(scope="function")
+def app():
+    app = create_app()
+    with app.app_context():
+        db.create_all()
+        yield app.test_client()
 
 # @pytest.fixture(scope="function")
 # def session():

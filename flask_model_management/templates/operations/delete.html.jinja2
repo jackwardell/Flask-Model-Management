@@ -13,15 +13,15 @@
                 </div>
                 <div class="card-body">
                     <form method="post">
-                        {% with form = operation.model.make_form(request.args) %}
+{#                        {% with form = operation.model.make_form(request.args) %}#}
                             <div class="form-group">
                                 {{ form.csrf_token }}
                             </div>
                             {% for field in form %}
-                                {% if field.label.text not in ("CSRF Token", "submit") %}
+                                {% if field.label.text not in form.hidden_fields %}
                                     <div class="form-group">
                                         {{ field.label }}{% if field.__required__ %}<span class="text-danger">*</span>{% endif %}:
-                                        {{ field(class="form-control mb-4", value=field.__default__) }}
+                                        {{ field(class="form-control mb-4", disabled="") }}
                                     </div>
                                 {% endif %}
                             {% endfor %}
@@ -30,7 +30,7 @@
                                     {{ form.submit(class=classes) }}
                                 {% endwith %}
                             </div>
-                        {% endwith %}
+{#                        {% endwith %}#}
                     </form>
                 </div>
             </div>

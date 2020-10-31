@@ -5,10 +5,10 @@
         <thead>
         <tr>
             {% for col in model.columns %}
-                <th>{{ col.name }}</th>
+                <th>{% if col.primary_key %}<i data-feather="key"></i> {% endif %}{{ col.name }} [{{ col.type }}]</th>
             {% endfor %}
-            <th>update</th>
-            <th>delete</th>
+            <th class="text-center">update</th>
+            <th class="text-center">delete</th>
         </tr>
         </thead>
         <tbody>
@@ -17,8 +17,8 @@
                 {% for col in model.columns %}
                     <td>{{ item[col.name] }}</td>
                 {% endfor %}
-                <td class="text-center"><a href="{{ get_url(model.endpoint, path="/update") }}" class="btn btn-warning">Update</a></td>
-                <td class="text-center"><a href="{{ get_url(model.endpoint, path="/delete") }}" class="btn btn-danger">Delete</a></td>
+                <td class="text-center"><a href="{{ get_url(model.endpoint, path="update", **item.to_dict()) }}" class="btn btn-warning">Update</a></td>
+                <td class="text-center"><a href="{{ get_url(model.endpoint, path="delete", **item.to_dict()) }}" class="btn btn-danger">Delete</a></td>
             </tr>
         {% endfor %}
         </tbody>
