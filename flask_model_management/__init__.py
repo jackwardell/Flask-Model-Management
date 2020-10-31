@@ -3,9 +3,7 @@ from pathlib import Path
 
 from flask import render_template
 from flask import request
-from flask import url_for
-from flask_simpleview import Blueprint
-from flask_simpleview import SimpleView
+from flask import url_for, Blueprint, redirect
 from flask_wtf import FlaskForm
 from wtforms import BooleanField
 from wtforms import HiddenField
@@ -24,6 +22,13 @@ CRUD_OPERATIONS = ["create", "read", "update", "delete"]
 MODEL_TEMPLATE = "model.html.jinja2"
 OPERATIONS_FOLDER = "operations/"
 TEMPLATE_SUFFIX = ".html.jinja2"
+
+
+class DefaultForm(FlaskForm):
+    HIDDEN_FIELDS = ("pk", "submit", "CSRF Token")
+
+    def fields_to_show(self):
+        return [f for f in self if f.label.text not in self.HIDDEN_FIELDS]
 
 
 class Type:
@@ -53,7 +58,7 @@ class Type:
 
 class Column:
     def __init__(
-        self, key, name, type_, required=True, default=None, primary_key=False
+            self, key, name, type_, required=True, default=None, primary_key=False
     ):
         self.key = key
         self.name = name
@@ -106,20 +111,7 @@ class Row:
         return cls(**kwargs)
 
 
-class Entity:
-    @property
-    def route(self):
-        raise NotImplementedError()
-
-    @property
-    def endpoint(self):
-        raise NotImplementedError()
-
-    def dispatch_request(self):
-        raise NotImplementedError()
-
-
-class Operation(Entity):
+class ModelOperation:
     def __init__(self, model, operation):
         self.model = model
         self.name = operation
@@ -137,7 +129,7 @@ class Operation(Entity):
         return self.model.endpoint + "_" + self.name
 
     def make_form(self, multi_dict):
-        form = type("Form", (FlaskForm,), {})
+        form = type("Form", (DefaultForm,), {})
 
         for col in self.model.columns:
             setattr(form, col.name, col.field())
@@ -148,57 +140,27 @@ class Operation(Entity):
         form.hidden_fields = ["CSRF Token", "submit", "pk"]
         return form(multi_dict)
 
-    # def dispatch_request(self):
-    #
-    #     pk = request.args.get(request.args.get("pk"))
-    #
-    #     if request.method == "POST":
-    #         params = request.form
-    #     else:
-    #         params = request.args
-    #
-    #     form = self.make_form(params)
-    #
-    #     model = self.model.query.get(pk)
-    #
-    #     if model:
-    #         for column in model.__table__.columns:
-    #             setattr(model, column.name, form[column.name].data)
-    #
-    #     return render_template(
-    #         self.template, form=form, model=self.model, operation=self
-    #     )
+    def dispatch_request(self):
+        if request.method == "POST":
+            form = self.make_form(request.form)
+            pk = request.args.get(request.args.get("pk"))
+            model = self.model.query.get(pk)
+            if model:
+                for column in model.__table__.columns:
+                    setattr(model, column.name, form[column.name].data)
 
-    def make_view(self):
-        class View(SimpleView):
-            endpoint = self.endpoint
-            rule = self.route
-            template = self.template
+            return render_template(
+                self.template, form=form, model=self.model, operation=self
+            )
 
-            def get(self_):
-                form = self.make_form(request.args)
-                return render_template(
-                    self.template, form=form, model=self.model, operation=self
-                )
-
-            def post(self_):
-                form = self.make_form(request.form)
-
-                pk = request.args.get(request.args.get("pk"))
-                model = self.model.query.get(pk)
-
-                if model:
-                    for column in model.__table__.columns:
-                        setattr(model, column.name, form[column.name].data)
-
-                return render_template(
-                    self.template, form=form, model=self.model, operation=self
-                )
-
-        return View
+        else:
+            form = self.make_form(request.args)
+            return render_template(
+                self.template, form=form, model=self.model, operation=self
+            )
 
 
-class Model(Entity):
+class Model:
     def __init__(self, model):
         self.model = model
 
@@ -220,7 +182,7 @@ class Model(Entity):
 
     @property
     def operations(self):
-        return [Operation(self, op) for op in CRUD_OPERATIONS]
+        return [ModelOperation(self, op) for op in CRUD_OPERATIONS]
 
     @property
     def primary_key(self):
@@ -230,8 +192,9 @@ class Model(Entity):
     def query(self):
         return self.model.query
 
-    def dispatch_request(self):
-        return render_template(MODEL_TEMPLATE, model=self)
+    def dispatch_request(self, blueprint):
+        endpoint = blueprint + "." + self.endpoint + "_read"
+        return lambda: redirect(url_for(endpoint))
 
     def all(self):
         return [Row.from_row(row) for row in self.model.query.limit(100)]
@@ -254,9 +217,7 @@ class ModelManagement:
         return self.get_url(endpoint, path=path) == request.path
 
     def init_app(self, app, models=None):
-        if models:
-            self.models = [Model(m) for m in models]
-
+        self.models = [Model(m) for m in models]
         mgmt = self.create_blueprint()
 
         @mgmt.route("/")
@@ -272,16 +233,17 @@ class ModelManagement:
             }
 
         for model in self.models:
-            mgmt.add_url_rule(model.route, model.endpoint, model.dispatch_request)
+            mgmt.add_url_rule(
+                model.route, model.endpoint, model.dispatch_request(self.endpoint)
+            )
 
             for operation in model.operations:
-                mgmt.add_view(operation.make_view())
-                # mgmt.add_url_rule(
-                #     operation.route,
-                #     operation.endpoint,
-                #     operation.dispatch_request,
-                #     methods=("GET", "POST"),
-                # )
+                mgmt.add_url_rule(
+                    operation.route,
+                    operation.endpoint,
+                    operation.dispatch_request,
+                    methods=("GET", "POST"),
+                )
 
         app.register_blueprint(mgmt)
 

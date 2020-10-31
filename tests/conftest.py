@@ -85,6 +85,7 @@ def create_app():
     app.debug = True
     app.config["SECRET_KEY"] = "hello world"
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+    app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
     db.init_app(app)
     toolbar.init_app(app)

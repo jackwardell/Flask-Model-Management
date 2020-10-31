@@ -3,37 +3,66 @@
 {% from 'macros.html.jinja2' import operation_colour %}
 
 {% block main %}
-    <div class="container d-flex justify-content-center">
-        <div class="col-sm-10">
-            <div class="card my-4">
-                <div class="card-header">
-                    <div class="card-title">
-                        <h5 class="text-center">{{ operation.name | title }} {{ operation.model.name }}</h5>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-{#                        {% with form = operation.model.make_form(request.args) %}#}
-                            <div class="form-group">
-                                {{ form.csrf_token }}
-                            </div>
-                            {% for field in form %}
-                                {% if field.label.text not in ("CSRF Token", "submit") %}
-                                    <div class="form-group">
-                                        {{ field.label }}{% if field.__required__ %}<span class="text-danger">*</span>{% endif %}:
-                                        {{ field(class="form-control mb-4", value=field.__default__) }}
-                                    </div>
-                                {% endif %}
+    <div class="container-fluid p-0">
+        <div class="card mt-2 mb-4">
+            <div class="card-header">
+                <h5 class="text-center">Query</h5>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    {#                    <div class="form-group">#}
+                    {#                        {{ form.csrf_token }}#}
+                    {#                    </div>#}
+                    {% for fields in form.fields_to_show() | batch(4) %}
+                        <div class="form-row d-flex justify-content-center">
+                            {% for field in fields %}
+                                <div class="form-group col-3">
+                                    {{ field.label(class="col-form-label") }}{% if field.__required__ %}<span class="text-danger">*</span>{% endif %}
+                                    {{ field(class="form-control col-12") }}
+                                </div>
                             {% endfor %}
-                            <div class="form-group text-center">
-                                {% with classes = "btn btn-" + operation_colour(operation.name) %}
-                                    {{ form.submit(class=classes) }}
-                                {% endwith %}
-                            </div>
-{#                        {% endwith %}#}
-                    </form>
-                </div>
+                        </div>
+                    {% endfor %}
+                    <div class="form-group text-center">
+                        {% with classes = "btn btn-" + operation_colour(operation.name) %}
+                            {% with value = (operation.name | title) + " " + operation.model.name %}
+                                {{ form.submit(class=classes, value=value) }}
+                            {% endwith %}
+                        {% endwith %}
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <table class="table table-bordered table-striped" id="table">
+        <thead>
+        <tr>
+            {% for col in model.columns %}
+                <th>{% if col.primary_key %}<i data-feather="key"></i> {% endif %}{{ col.name }} [{{ col.type }}]</th>
+            {% endfor %}
+            <th class="text-center">update</th>
+            <th class="text-center">delete</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in model.all() %}
+            <tr>
+                {% for col in model.columns %}
+                    <td>{{ item[col.name] }}</td>
+                {% endfor %}
+                <td class="text-center"><a href="{{ get_url(model.endpoint, path="update", **item.to_dict()) }}" class="btn btn-warning">Update</a></td>
+                <td class="text-center"><a href="{{ get_url(model.endpoint, path="delete", **item.to_dict()) }}" class="btn btn-danger">Delete</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(document).ready(function () {
+            $('#table').DataTable();
+        });
+    </script>
 {% endblock %}
