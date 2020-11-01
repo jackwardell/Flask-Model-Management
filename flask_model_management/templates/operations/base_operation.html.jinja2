@@ -1,0 +1,28 @@
+{% extends 'base.html.jinja2' %}
+
+{% block main %}
+    {% include 'components/flash.html.jinja2' %}
+
+    <div class="container-fluid p-0">
+        <div class="card mt-2 mb-4">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs">
+                    {% for op in operation.model.operations %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if op == operation %}active{% endif %}" href="{{ get_url(op.endpoint) }}">{{ op }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="card-body">
+                {% block form_card %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+
+    {% block body %}
+    {% endblock %}
+
+{% endblock %}

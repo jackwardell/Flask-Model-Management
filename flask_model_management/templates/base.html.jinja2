@@ -1,4 +1,4 @@
-{% from 'macros.html.jinja2' import operation_colour %}
+{% from 'components/macros.html.jinja2' import operation_colour %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -8,6 +8,7 @@
     <meta name="description" content="">
     <meta name="author" content="Jack Wardell">
     <title>Model Management</title>
+
     {# jquery #}
     <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
@@ -24,127 +25,7 @@
     {# feather #}
     <script src="https://unpkg.com/feather-icons"></script>
 
-    <style>
-        .bd-placeholder-img {
-            font-size: 1.125rem;
-            text-anchor: middle;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-
-        @media (min-width: 768px) {
-            .bd-placeholder-img-lg {
-                font-size: 3.5rem;
-            }
-        }
-
-        body {
-            font-size: .875rem;
-        }
-
-        .feather {
-            width: 16px;
-            height: 16px;
-            vertical-align: text-bottom;
-        }
-
-        /*
-         * Sidebar
-         */
-
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100; /* Behind the navbar */
-            padding: 48px 0 0; /* Height of navbar */
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-        }
-
-        @media (max-width: 767.98px) {
-            .sidebar {
-                top: 5rem;
-            }
-        }
-
-        .sidebar-sticky {
-            position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
-            overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
-        }
-
-        @supports ((position: -webkit-sticky) or (position: sticky)) {
-            .sidebar-sticky {
-                position: -webkit-sticky;
-                position: sticky;
-            }
-        }
-
-        .sidebar .nav-link {
-            font-weight: 500;
-            color: #333;
-        }
-
-        .sidebar .nav-link .feather {
-            margin-right: 4px;
-            color: #999;
-        }
-
-        .sidebar .nav-link.active {
-            color: #007bff;
-        }
-
-        .sidebar .nav-link:hover .feather,
-        .sidebar .nav-link.active .feather {
-            color: inherit;
-        }
-
-        .sidebar-heading {
-            font-size: .75rem;
-            text-transform: uppercase;
-        }
-
-        /*
-         * Navbar
-         */
-
-        .navbar-brand {
-            padding-top: .75rem;
-            padding-bottom: .75rem;
-            font-size: 1rem;
-            background-color: rgba(0, 0, 0, .25);
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
-        }
-
-        .navbar .navbar-toggler {
-            top: .25rem;
-            right: 1rem;
-        }
-
-        .navbar .form-control {
-            padding: .75rem 1rem;
-            border-width: 0;
-            border-radius: 0;
-        }
-
-        .form-control-dark {
-            color: #fff;
-            background-color: rgba(255, 255, 255, .1);
-            border-color: rgba(255, 255, 255, .1);
-        }
-
-        .form-control-dark:focus {
-            border-color: transparent;
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, .25);
-        }
-
-    </style>
+    {% include 'style.html.jinja2' %}
 </head>
 <body>
 
@@ -168,23 +49,21 @@
                             <span data-feather="home"></span>Dashboard
                         </a>
                     </li>
-                    {% for m in models %}
+                    {% for model in models %}
                         <li class="nav-item">
-                            <a class="nav-link {% if is_url(m.endpoint) %}active{% endif %}" href="{{ get_url(m.endpoint) }}">
+                            <a class="nav-link {% if is_model(model) %}active{% endif %}" href="{{ get_url(model.name) }}">
                                 <span data-feather="database"></span>
-                                {{ m.name }}
+                                {{ model.name | title }}
                             </a>
                         </li>
-                        {% if model %}
-                            {% if model.endpoint == m.endpoint %}
-                                <li>
-                                    <ul>
-                                        {% for operation in m.operations %}
-                                            <li><a class="nav-link {% if get_url(model.endpoint, path=operation.name) == request.path %}active{% endif %}" href="{{ get_url(model.endpoint, path=operation.name) }}">{{ operation.name | title }}</a></li>
-                                        {% endfor %}
-                                    </ul>
-                                </li>
-                            {% endif %}
+                        {% if operation and is_model(model) %}
+                            <li>
+                                <ul>
+                                    {% for operation in model.operations %}
+                                        <li><a class="nav-link {% if is_model_operation(operation) %}active{% endif %}" href="{{ get_url(operation.endpoint) }}">{{ operation | title }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
                         {% endif %}
                     {% endfor %}
                 </ul>
@@ -196,13 +75,13 @@
 
                 {% block title %}
                     {% if operation %}
-                        <h1>{{ operation.name | title }} {{ model.name }}</h1>
+                        <h1>{{ operation.name | title }} {{ operation.model.name }}</h1>
                     {% else %}
-                        {% if model %}
-                            <h1>{{ model.name }} Dashboard</h1>
-                        {% else %}
-                            <h1>Dashboard</h1>
-                        {% endif %}
+                        {#                        {% if operation.model %}#}
+                        {#                            <h1>{{ operation.model.name }} Dashboard</h1>#}
+                        {#                        {% else %}#}
+                        <h1>Dashboard</h1>
+                        {#                        {% endif %}#}
                     {% endif %}
                 {% endblock %}
 
@@ -221,21 +100,21 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         {% if is_url('index') %}
-                            <li class="breadcrumb-item active">Models Under Management</li>
+                            <li class="breadcrumb-item active">models under management</li>
                         {% else %}
-                            <li class="breadcrumb-item"><a href="{{ get_url('index') }}">Models Under Management</a></li>
-                            <li class="breadcrumb-item {% if not operation %}active{% endif %}">{% if operation %}<a href="{{ get_url(model.endpoint) }}">{% endif %}{{ model.name }}{% if operation %}</a>{% endif %}</li>
+                            <li class="breadcrumb-item"><a href="{{ get_url('index') }}">models under management</a></li>
+                            <li class="breadcrumb-item {% if not operation %}active{% endif %}">{% if operation %}<a href="{{ get_url(operation.model.endpoint) }}">{% endif %}{{ operation.model.name }}{% if operation %}</a>{% endif %}</li>
                             {% if operation %}
-                                <li class="breadcrumb-item active">{{ ( operation.name | title ) }}</li>
+                                <li class="breadcrumb-item active">{{ operation }}</li>
                             {% endif %}
                         {% endif %}
                     </ol>
                 </nav>
             </div>
-            {#            {% if model %}#}
+            {#            {% if operation.model %}#}
             {#                <div class="d-flex justify-content-between pb-3 mb-3 border-bottom">#}
-            {#                    {% for operation in model.operations %}#}
-            {#                        <a href="{{ get_url(model.endpoint, path="/" + operation.name) }}" class="btn btn-{{ operation_colour(operation.name) }}" role="button" style="width: 100px">{{ operation.name | title }}</a>#}
+            {#                    {% for operation in operation.model.operations %}#}
+            {#                        <a href="{{ get_url(operation.model.endpoint, operation="/" + operation.name) }}" class="btn btn-{{ operation_colour(operation.name) }}" role="button" style="width: 100px">{{ operation.name | title }}</a>#}
             {#                    {% endfor %}#}
             {#                </div>#}
             {#            {% endif %}#}

@@ -29,21 +29,6 @@ USERS = [
 ]
 
 
-# # class Plugin:
-# #     def __init__(self, module):
-# #         self.module = module
-# #
-# #     @property
-# #     def base(self):
-# #         return db.Model
-# #
-# #     def __getattr__(self, item):
-#         return getattr(self.module, item)
-
-
-# plugin = Plugin(db)
-
-
 class User(db.Model):
     __tablename__ = "user"
 
@@ -61,7 +46,7 @@ class User(db.Model):
 class Address(db.Model):
     __tablename__ = "address"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     email_address = Column(String, nullable=False)
     user_id = Column(Integer, ForeignKey("user.id"))
 
@@ -89,7 +74,7 @@ def create_app():
 
     db.init_app(app)
     toolbar.init_app(app)
-    mgmt.init_app(app, models=[User, Address])
+    mgmt.init_app(app, models=[User, Address], db=db)
 
     with app.app_context():
         db.create_all()
