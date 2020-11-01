@@ -59,7 +59,7 @@ class DefaultForm(FlaskForm):
             setattr(cls, col.name, col.make_field(model_operation))
 
         if model_operation == "update":
-            setattr(cls, "pk", StringField)
+            cls.pk = StringField
             cls.HIDDEN_FIELDS.remove("pk")
 
         return cls
@@ -289,7 +289,7 @@ class ModelOperationView:
             for col in self.model_operation.model.columns:
                 kwargs[col.name] = form[col.name].data
             self.crud.create(**kwargs)
-            flash(f"entry created", SUCCESS_MESSAGE)
+            flash("entry created", SUCCESS_MESSAGE)
 
         else:
             form = self.model_operation.make_form(request.args)
@@ -314,7 +314,7 @@ class ModelOperationView:
             form = self.model_operation.make_form(request.form)
 
             self.crud.update(form.primary_key, **form.get_fields_passed())
-            flash(f"entry updated", SUCCESS_MESSAGE)
+            flash("entry updated", SUCCESS_MESSAGE)
 
         else:
             form = self.model_operation.make_form(request.args)

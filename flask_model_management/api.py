@@ -1,4 +1,3 @@
-
 # class API:
 #     def __init__(self, model, session):
 #         self.model = model
@@ -21,8 +20,6 @@
 #
 #     def delete(self):
 #         pass
-
-
 # class CRUD:
 #     def __init__(self, model, session):
 #         self.model = model
@@ -48,4 +45,3 @@
 #
 #     def delete(self, **kwargs):
 #         return self.read(**kwargs).delete()
-

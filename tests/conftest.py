@@ -8,10 +8,10 @@ from flask_debugtoolbar import DebugToolbarExtension
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Boolean
 from sqlalchemy import Column
+from sqlalchemy import create_engine
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import String
-from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -70,7 +70,7 @@ def create_app():
     app.debug = True
     app.config["SECRET_KEY"] = "hello world"
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-    app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+    app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
 
     db.init_app(app)
     toolbar.init_app(app)
@@ -104,6 +104,7 @@ def app():
     with app.app_context():
         db.create_all()
         yield app.test_client()
+
 
 # @pytest.fixture(scope="function")
 # def session():
