@@ -15,6 +15,8 @@ from wtforms import IntegerField
 from wtforms import StringField
 from wtforms import SubmitField
 
+from .app import CRUD
+
 THIS_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 TEMPLATES_DIR = THIS_DIR / "templates"
 
@@ -65,7 +67,7 @@ class DefaultForm(FlaskForm):
         return fields
 
     @classmethod
-    def from_model(cls, model_operation):
+    def from_model_operation(cls, model_operation):
         name = model_operation.name.title() + "Form"
         form = type(name, (cls,), {})
 
@@ -117,41 +119,6 @@ class ColumnType:
 
 def get_session():
     return current_app.extensions["model_management"].db.session
-
-
-class CRUD:
-    def __init__(self, model):
-        self.model = model
-
-    def create(self, **kwargs):
-        model = self.model(**kwargs)
-        session = get_session()
-        session.add(model)
-        session.commit()
-        return model
-
-    def read(self, **kwargs):
-        session = get_session()
-        query = session.query(self.model)
-        for k, v in kwargs.items():
-            query = query.filter_by(**{k: v})
-        return query.all()
-
-    def update(self, where: dict, update: dict):
-        rows = self.read(**where)
-        for row in rows:
-            for k, v in update.items():
-                setattr(row, k, v)
-        get_session().commit()
-        return rows
-
-    def delete(self, **kwargs):
-        session = get_session()
-        rows = self.read(**kwargs)
-        for row in rows:
-            session.delete(row)
-        session.commit()
-        return
 
 
 def make_span(text, category=None):
@@ -287,11 +254,11 @@ class ModelOperationView:
 
     @property
     def form(self):
-        return DefaultForm.f
+        return DefaultForm.from_model_operation(self.model_operation)
 
     def create(self):
         if request.method == "POST":
-            form = self.model_operation.make_form(request.form)
+            form = self.form(request.form)
             kwargs = {}
             for col in self.model_operation.model.columns:
                 kwargs[col.name] = form[col.name].data
@@ -299,14 +266,14 @@ class ModelOperationView:
             flash("entry created", SUCCESS_MESSAGE)
 
         else:
-            form = self.model_operation.make_form(request.args)
+            form = self.form(request.args)
 
         return render_template(
             self.model_operation.template, form=form, operation=self.model_operation
         )
 
     def read(self):
-        form = self.model_operation.make_form(request.args)
+        form = self.form(request.args)
         data = self.crud.read(**form.get_fields_passed())
 
         return render_template(
@@ -318,13 +285,13 @@ class ModelOperationView:
 
     def update(self):
         if request.method == "POST":
-            form = self.model_operation.make_form(request.form)
+            form = self.form(request.form)
 
             self.crud.update(form.get_query_fields_passed(), form.get_fields_passed())
             flash("entry updated", SUCCESS_MESSAGE)
 
         else:
-            form = self.model_operation.make_form(request.args)
+            form = self.form(request.args)
 
         return render_template(
             self.model_operation.template, form=form, operation=self.model_operation
@@ -332,13 +299,13 @@ class ModelOperationView:
 
     def delete(self):
         if request.method == "POST":
-            form = self.model_operation.make_form(request.form)
+            form = self.form(request.form)
 
             self.crud.delete(**form.get_fields_passed())
             flash("entry deleted", SUCCESS_MESSAGE)
 
         else:
-            form = self.model_operation.make_form(request.args)
+            form = self.form(request.args)
 
         return render_template(
             self.model_operation.template, form=form, operation=self.model_operation
@@ -373,7 +340,7 @@ class ModelOperation:
         return str(self).lower() == str(other).lower()
 
     def make_form(self, multi_dict):
-        return DefaultForm.from_model(self)(multi_dict)
+        return DefaultForm.from_model_operation(self)(multi_dict)
 
     @property
     def view(self):
@@ -526,6 +493,7 @@ class ModelManagement:
 
         # set location for models to be stored
         self.models = []
+        self.table_name_model_mapping = {}
 
         # set db object
         self.db = None
