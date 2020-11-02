@@ -1,35 +1,18 @@
 {% extends 'operations/base_operation.html.jinja2' %}
 
-{% from 'components/macros.html.jinja2' import operation_colour %}
-
 {% block form_card %}
-    <div class="col-sm-10">
-        <div class="card my-4">
-            <div class="card-header">
-                <div class="card-title">
-                    <h5 class="text-center">{{ operation.name | title }} {{ operation.model.name }}</h5>
+    <form method="post">
+        <div role="form" id="form-content">
+            <div class="form-group">
+                {{ form.csrf_token }}
+            </div>
+            {% for field in form.fields_to_show() %}
+                <div class="form-group">
+                    {{ field.description.key }} {{ field.label }} {{ field.description.col_type }} {{ field.description.nullable }}:
+                    {{ field(class="form-control mb-4") }}
                 </div>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    <div class="form-group">
-                        {{ form.csrf_token }}
-                    </div>
-                    {% for field in form %}
-                        {% if field.label.text not in form.hidden_fields %}
-                            <div class="form-group">
-                                {{ field.label }}{% if field.__required__ %}<span class="text-danger">*</span>{% endif %}:
-                                {{ field(class="form-control mb-4", disabled="") }}
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                    <div class="form-group text-center">
-                        {% with classes = "btn btn-" + operation_colour(operation.name) %}
-                            {{ form.submit(class=classes) }}
-                        {% endwith %}
-                    </div>
-                </form>
-            </div>
+            {% endfor %}
         </div>
-    </div>
+        {% include 'components/operation_confirm_submit_modal.html.jinja2' %}
+    </form>
 {% endblock %}

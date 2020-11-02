@@ -74,7 +74,11 @@ def create_app():
 
     db.init_app(app)
     toolbar.init_app(app)
-    mgmt.init_app(app, models=[User, Address], db=db)
+
+    mgmt.register_model(User, excluded_operations=["create"])
+    mgmt.register_model(Address, excluded_columns=["email_address"])
+
+    mgmt.init_app(app, db=db)
 
     with app.app_context():
         db.create_all()

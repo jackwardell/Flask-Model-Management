@@ -4,17 +4,19 @@
 
 {% block form_card %}
     <form method="get">
-        {% for fields in form.fields_to_show() | batch(4) %}
-            <div class="form-row d-flex justify-content-center">
-                {% for field in fields %}
-                    <div class="form-group col-3">
-                        {{ field.label(class="col-form-label") }}{% if field.__required__ %}<span class="text-danger">*</span>{% endif %}
-                        {{ field(class="form-control col-12") }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endfor %}
-        {% include 'components/operation_button.html.jinja2' %}
+        <div role="form" id="form-content">
+            {% for fields in form.fields_to_show() | batch(4) %}
+                <div class="form-row d-flex justify-content-center">
+                    {% for field in fields %}
+                        <div class="form-group col-3">
+                            {{ field.label(class="col-form-label") }}{% if field.__required__ %}<span class="text-danger">*</span>{% endif %}
+                            {{ field(class="form-control col-12") }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+        {% include 'components/operation_submit_button.html.jinja2' %}
     </form>
 {% endblock %}
 

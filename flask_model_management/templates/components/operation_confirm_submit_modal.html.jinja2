@@ -1,0 +1,27 @@
+{% include 'components/operation_submit_button.html.jinja2' %}
+
+<script>
+    $("#summon-modal").on('click', function (event) {
+        $("#modal-body").html($("#form-content").clone())
+    })
+</script>
+
+<div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Are you sure you want to progress?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-body">
+
+            </div>
+            <div class="modal-footer d-flex justify-content-around">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                {{ form.submit(class="btn btn-info") }}
+            </div>
+        </div>
+    </div>
+</div>

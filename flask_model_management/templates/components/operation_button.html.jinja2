@@ -1,9 +1,0 @@
-{% from 'components/macros.html.jinja2' import operation_colour %}
-
-<div class="form-group text-center">
-    {% with classes = "btn btn-" + operation_colour(operation) %}
-        {% with label = operation.name + " " + operation.model.name %}
-            {{ form.submit(class=classes, value=label) }}
-        {% endwith %}
-    {% endwith %}
-</div>

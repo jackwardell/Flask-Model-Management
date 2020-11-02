@@ -10,7 +10,6 @@ from flask import request
 from flask import url_for
 from flask_wtf import FlaskForm
 from wtforms import BooleanField
-from wtforms import HiddenField
 from wtforms import IntegerField
 from wtforms import StringField
 from wtforms import SubmitField
@@ -21,7 +20,7 @@ TEMPLATES_DIR = THIS_DIR / "templates"
 ENDPOINT = "model_management"
 URL_PREFIX = "/model-management"
 
-CRUD_OPERATIONS = ["create", "read", "update", "delete"]
+CRUD_OPERATIONS = frozenset({"create", "read", "update", "delete"})
 
 MODEL_TEMPLATE = "model.html.jinja2"
 OPERATIONS_FOLDER = "operations/"
@@ -34,35 +33,52 @@ INFO_MESSAGE = "primary"
 
 
 class DefaultForm(FlaskForm):
-    HIDDEN_FIELDS = ["pk", "submit", "CSRF Token"]
+    HIDDEN_FIELDS = ("Submit", "CSRF Token")
 
-    pk = HiddenField("pk")
-    submit = SubmitField("submit")
+    submit = SubmitField("Submit")
 
     def fields_to_show(self):
-        return [f for f in self if f.label.text not in self.HIDDEN_FIELDS]
+        fields = [
+            field
+            for field in self
+            if field.label.text not in self.HIDDEN_FIELDS
+            and not field.name.startswith("query_")
+        ]
+        return fields
+
+    def query_fields_to_show(self):
+        return [field for field in self if field.name.startswith("query_")]
 
     def get_fields_passed(self):
         fields = {}
         for field in self.fields_to_show():
             if field.data:
-                fields[field.label.field_id] = field.data
+                print("field_id", field.label.field_id)
+                print("text", field.label.text)
+                fields[field.label.text] = field.data
         return fields
 
-    @property
-    def primary_key_filter(self):
-        return {self.pk.data: self[self.pk.data].data}
+    def get_query_fields_passed(self):
+        fields = {}
+        for field in self.query_fields_to_show():
+            if field.data:
+                fields[field.label.text] = field.data
+        return fields
 
     @classmethod
     def from_model(cls, model_operation):
+        name = model_operation.name.title() + "Form"
+        form = type(name, (cls,), {})
+
         for col in model_operation.model.columns:
-            setattr(cls, col.name, col.make_field(model_operation))
 
-        if model_operation == "update":
-            cls.pk = StringField
-            cls.HIDDEN_FIELDS.remove("pk")
+            if model_operation == "update":
+                setattr(form, col.name, col.make_field(model_operation))
+                setattr(form, "query_" + col.name, col.make_field(model_operation))
+            else:
+                setattr(form, col.name, col.make_field(model_operation))
 
-        return cls
+        return form
 
 
 class ColumnType:
@@ -122,20 +138,21 @@ class CRUD:
             query = query.filter_by(**{k: v})
         return query.all()
 
-    def update(self, pk, **kwargs):
-        session = get_session()
-        model = session.query(self.model).get(pk)
-        for k, v in kwargs.items():
-            setattr(model, k, v)
-        session.commit()
-        return model
+    def update(self, where: dict, update: dict):
+        rows = self.read(**where)
+        for row in rows:
+            for k, v in update.items():
+                setattr(row, k, v)
+        get_session().commit()
+        return rows
 
     def delete(self, **kwargs):
         session = get_session()
-        query = session.query(self.model)
-        for k, v in kwargs.items():
-            query = query.filter_by(**{k: v})
-        return query.delete()
+        rows = self.read(**kwargs)
+        for row in rows:
+            session.delete(row)
+        session.commit()
+        return
 
 
 def make_span(text, category=None):
@@ -313,7 +330,7 @@ class ModelOperationView:
         if request.method == "POST":
             form = self.model_operation.make_form(request.form)
 
-            self.crud.update(form.primary_key, **form.get_fields_passed())
+            self.crud.update(form.get_query_fields_passed(), form.get_fields_passed())
             flash("entry updated", SUCCESS_MESSAGE)
 
         else:
@@ -324,7 +341,18 @@ class ModelOperationView:
         )
 
     def delete(self):
-        return
+        if request.method == "POST":
+            form = self.model_operation.make_form(request.form)
+
+            self.crud.delete(**form.get_fields_passed())
+            flash("entry deleted", SUCCESS_MESSAGE)
+
+        else:
+            form = self.model_operation.make_form(request.args)
+
+        return render_template(
+            self.model_operation.template, form=form, operation=self.model_operation
+        )
 
 
 class ModelOperation:
@@ -405,8 +433,10 @@ class Query:
 
 
 class Model:
-    def __init__(self, model):
+    def __init__(self, model, excluded_columns=None, excluded_operations=None):
         self._model = model
+        self._excluded_columns = excluded_columns or []
+        self._excluded_operations = excluded_operations or []
 
     @property
     def sqlalchemy_model(self):
@@ -419,7 +449,9 @@ class Model:
     @property
     def columns(self):
         cols = [
-            Column.from_sqlalchemy_column(col) for col in self._model.__table__.columns
+            Column.from_sqlalchemy_column(col)
+            for col in self._model.__table__.columns
+            if col.name not in self._excluded_columns
         ]
         return cols
 
@@ -428,8 +460,8 @@ class Model:
         return Query.from_sqlalchemy_model(self._model)
 
     @classmethod
-    def from_sqlalchemy_model(cls, model):
-        return cls(model)
+    def from_sqlalchemy_model(cls, model, **kwargs):
+        return cls(model, **kwargs)
 
     def make_sqlalchemy_model(self, **kwargs):
         return self._model(**kwargs)
@@ -452,7 +484,8 @@ class Model:
 
     @property
     def operations(self):
-        return [self.create, self.read, self.update, self.delete]
+        allowed_operations = CRUD_OPERATIONS - set(self._excluded_operations)
+        return [getattr(self, operation) for operation in allowed_operations]
 
     @property
     def endpoint(self):
@@ -530,13 +563,15 @@ class ModelManagement:
         self.url_prefix = url_prefix or URL_PREFIX
 
         # set location for models to be stored
-        self.models = None
+        self.models = []
 
         # set db object
         self.db = None
 
         if app:
             self.init_app(app, db)
+
+        self.blueprint = self.create_blueprint()
 
     def get_url(self, endpoint, **params):
         operation = params.pop("operation", "")
@@ -556,17 +591,23 @@ class ModelManagement:
         blueprint, endpoint = request.endpoint.split(".")
         return self.endpoint == blueprint and endpoint == operation.endpoint
 
-    def init_app(self, app, models=None, db=None):
-        self.models = [Model.from_sqlalchemy_model(model) for model in models]
+    def register_model(self, model, excluded_columns=None, excluded_operations=None):
+        model = Model.from_sqlalchemy_model(
+            model,
+            excluded_columns=excluded_columns,
+            excluded_operations=excluded_operations,
+        )
+        self.models.append(model)
 
+    def init_app(self, app, db=None):
         if db:
             self.db = db
 
-        mgmt = self.create_blueprint()
+        self.blueprint.add_url_rule(
+            "/", "index", lambda: render_template("index.html.jinja2")
+        )
 
-        mgmt.add_url_rule("/", "index", lambda: render_template("index.html.jinja2"))
-
-        @mgmt.context_processor
+        @self.blueprint.context_processor
         def processors():
             return {
                 "models": self.models,
@@ -577,18 +618,19 @@ class ModelManagement:
             }
 
         for model in self.models:
-            mgmt.add_url_rule(model.name, model.name, model.redirect(self.endpoint))
+            self.blueprint.add_url_rule(
+                model.name, model.name, model.redirect(self.endpoint)
+            )
 
             for operation in model.operations:
-                mgmt.add_url_rule(
+                self.blueprint.add_url_rule(
                     operation.route,
                     operation.endpoint,
                     operation.dispatch_request,
                     methods=("GET", "POST"),
                 )
 
-        app.register_blueprint(mgmt)
-
+        app.register_blueprint(self.blueprint)
         app.extensions["model_management"] = self
 
     def create_blueprint(self):
