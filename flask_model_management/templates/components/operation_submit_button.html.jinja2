@@ -4,7 +4,7 @@
     {% with classes = "btn btn-" + operation_colour(operation) %}
         {% with label = operation.name + " " + operation.model.name %}
             {% if operation == "read" %}
-                {{ form.submit(class=classes, value=label) }}
+                {{ form.confirm(class=classes, value=label) }}
             {% else %}
                 <button id="summon-modal" type="button" class="{{ classes }}" data-toggle="modal" data-target="#confirm-modal">{{ label }}</button>
             {% endif %}

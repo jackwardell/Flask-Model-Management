@@ -3,6 +3,10 @@
 <script>
     $("#summon-modal").on('click', function (event) {
         $("#modal-body").html($("#form-content").clone())
+        $("#modal-body :input").attr("disabled", true);
+    })
+    $("#submit").on('click', function (event) {
+       $("#modal-body").html()
     })
 </script>
 
@@ -10,17 +14,19 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Are you sure you want to progress?</h5>
+                <h5 class="modal-title text-center">Are you sure you want to {{ operation }} {{ operation.model }}?</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body" id="modal-body">
-
+            <div class="modal-body">
+                <p class="h6 py-1">You have entered the below:</p>
+                <div class="border rounded p-4" id="modal-body">
+                </div>
             </div>
             <div class="modal-footer d-flex justify-content-around">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                {{ form.submit(class="btn btn-info") }}
+                {{ form.confirm(class="btn btn-info") }}
             </div>
         </div>
     </div>

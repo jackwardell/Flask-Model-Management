@@ -9,7 +9,7 @@
                 <div class="form-row d-flex justify-content-center">
                     {% for field in fields %}
                         <div class="form-group col-3">
-                            {{ field.label(class="col-form-label") }}{% if field.__required__ %}<span class="text-danger">*</span>{% endif %}
+                            {{ field.label(class="col-form-label") }}
                             {{ field(class="form-control col-12") }}
                         </div>
                     {% endfor %}
@@ -27,8 +27,12 @@
             {% for col in operation.model.columns %}
                 <th>{% if col.primary_key %}<i data-feather="key"></i> {% endif %}{{ col.name }} [{{ col.type }}]</th>
             {% endfor %}
-            {#            <th class="text-center">update</th>#}
-            {#            <th class="text-center">delete</th>#}
+            {% if "update" in operation.model.operations %}
+                <th class="text-center">update</th>
+            {% endif %}
+            {% if "delete" in operation.model.operations %}
+                <th class="text-center">delete</th>
+            {% endif %}
         </tr>
         </thead>
         <tbody>
@@ -37,8 +41,12 @@
                 {% for col in operation.model.columns %}
                     <td>{{ item[col.name] }}</td>
                 {% endfor %}
-                {#                <td class="text-center"><a href="{{ get_url(operation.model.endpoint, operation="update", **item.to_dict()) }}" class="btn btn-warning">Update</a></td>#}
-                {#                <td class="text-center"><a href="{{ get_url(operation.model.endpoint, operation="delete", **item.to_dict()) }}" class="btn btn-danger">Delete</a></td>#}
+                {% if "update" in operation.model.operations %}
+                    <td class="text-center"><a href="{{ get_url(operation.model.endpoint, operation="update", from_table=True, **get_params(item)) }}" class="btn btn-warning">Update</a></td>
+                {% endif %}
+                {% if "delete" in operation.model.operations %}
+                    <td class="text-center"><a href="{{ get_url(operation.model.endpoint, operation="delete", from_table=True, **get_params(item)) }}" class="btn btn-danger">Delete</a></td>
+                {% endif %}
             </tr>
         {% endfor %}
         </tbody>

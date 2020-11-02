@@ -34,9 +34,9 @@ INFO_MESSAGE = "primary"
 
 
 class DefaultForm(FlaskForm):
-    HIDDEN_FIELDS = ("Submit", "CSRF Token")
+    HIDDEN_FIELDS = ("Confirm", "CSRF Token")
 
-    submit = SubmitField("Submit")
+    confirm = SubmitField("Confirm")
 
     def fields_to_show(self):
         fields = [
@@ -54,8 +54,6 @@ class DefaultForm(FlaskForm):
         fields = {}
         for field in self.fields_to_show():
             if field.data:
-                print("field_id", field.label.field_id)
-                print("text", field.label.text)
                 fields[field.label.text] = field.data
         return fields
 
@@ -187,6 +185,14 @@ class FieldUI:
         return self.pk or self.fk
 
     @property
+    def is_pk(self):
+        return self._pk
+
+    @property
+    def boolean(self):
+        return self._col_type == "bool"
+
+    @property
     def nullable(self):
         return make_span("NOT NULLABLE", FAILURE_MESSAGE) if self._not_nullable else ""
 
@@ -271,25 +277,25 @@ class Column:
         return f"Column('{self.name}', key='{self.key}', type='{self.type}')"
 
 
-class Row:
-    def __init__(self, **kwargs):
-        self.result = kwargs
-
-    def __getattr__(self, item):
-        return self.result[item]
-
-    def to_dict(self):
-        return self.result
-
-    @classmethod
-    def from_row(cls, row):
-        kwargs = {}
-        for col in row.__table__.columns:
-            if col.primary_key is True:
-                kwargs["pk"] = col.name
-            kwargs[col.name] = getattr(row, col.name)
-
-        return cls(**kwargs)
+# class Row:
+#     def __init__(self, **kwargs):
+#         self.result = kwargs
+#
+#     def __getattr__(self, item):
+#         return self.result[item]
+#
+#     def to_dict(self):
+#         return self.result
+#
+#     @classmethod
+#     def from_row(cls, row):
+#         kwargs = {}
+#         for col in row.__table__.columns:
+#             if col.primary_key is True:
+#                 kwargs["pk"] = col.name
+#             kwargs[col.name] = getattr(row, col.name)
+#
+#         return cls(**kwargs)
 
 
 class ModelOperationView:
@@ -485,10 +491,13 @@ class Model:
         return lambda: redirect(url_for(endpoint))
 
     def all(self):
-        return [Row.from_row(row) for row in self.query.limit(100)]
+        return self.query.limit(100).all()
 
     def __repr__(self):
         return f"Model(table='{self.name}', columns='{self.columns}')"
+
+    def __str__(self):
+        return self.name
 
 
 def get_model_endpoint(endpoint):
@@ -513,6 +522,13 @@ def get_model_endpoint(endpoint):
         return "_".join(endpoint.split("_")[:-1])
     else:
         return endpoint
+
+
+def get_params(model):
+    params = {}
+    for col in model.__table__.columns:
+        params[col.name] = getattr(model, col.name)
+    return params
 
 
 class ModelManagement:
@@ -581,6 +597,7 @@ class ModelManagement:
                 "is_url": self.is_url,
                 "is_model_operation": self.is_model_operation,
                 "is_model": self.is_model,
+                "get_params": get_params,
             }
 
         for model in self.models:
