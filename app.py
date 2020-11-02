@@ -1,6 +1,5 @@
 """use this to test the library locally"""
 from flask import Flask
-from flask_debugtoolbar import DebugToolbarExtension
 
 from flask_model_management import ModelManagement
 from tests.models import Address
@@ -11,7 +10,6 @@ from tests.models import User
 
 def create_app():
     mgmt = ModelManagement()
-    toolbar = DebugToolbarExtension()
 
     app = Flask(__name__)
     app.debug = True
@@ -20,7 +18,6 @@ def create_app():
     app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
 
     db.init_app(app)
-    toolbar.init_app(app)
 
     mgmt.register_model(User, excluded_operations=["create", "update"])
     mgmt.register_model(Address, excluded_columns=["email_address"])
