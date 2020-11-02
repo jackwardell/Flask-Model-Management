@@ -3,7 +3,9 @@ import os
 import tempfile
 
 import pytest
+from flask import abort
 from flask import Flask
+from flask import request
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Boolean
@@ -63,6 +65,16 @@ def populate(session):
     session.commit()
 
 
+def request_decorator(func):
+    def decorator(*args, **kwargs):
+        if request.args.get("hello") == "world":
+            return func(*args, **kwargs)
+        else:
+            abort(404)
+
+    return decorator
+
+
 def create_app():
     mgmt = ModelManagement()
 
@@ -75,7 +87,9 @@ def create_app():
     db.init_app(app)
     toolbar.init_app(app)
 
-    mgmt.register_model(User, excluded_operations=["create"])
+    mgmt.register_model(
+        User, excluded_operations=["create"], decorators=[request_decorator]
+    )
     mgmt.register_model(Address, excluded_columns=["email_address"])
 
     mgmt.init_app(app, db=db)

@@ -1,4 +1,5 @@
 import os
+import warnings
 from pathlib import Path
 
 from flask import Blueprint
@@ -390,7 +391,8 @@ class ModelOperation:
         return ModelOperationView(self)
 
     def dispatch_request(self):
-        return getattr(self.view, self.operation)()
+        func = self.model.decorate(getattr(self.view, self.operation))
+        return func()
 
     def endpoint_with_blueprint(self, blueprint):
         return blueprint + "." + self.endpoint
@@ -411,32 +413,14 @@ class Query:
         return cls(lambda: model.query)
 
 
-# class Session:
-#     def __init__(self, session):
-#         self._session = session
-#
-#     def __call__(self, *args, **kwargs):
-#         if not self._session:
-#             self._session = self.get_session()
-#         return self._session
-#
-#     def __getattr__(self, item):
-#         return getattr(self(), item)
-#
-#     @classmethod
-#     def from_get_session(cls, session):
-#         return cls(get_session=session)
-#
-#     @classmethod
-#     def from_db_session(cls, session):
-#         return cls(session=session)
-
-
 class Model:
-    def __init__(self, model, excluded_columns=None, excluded_operations=None):
+    def __init__(
+        self, model, excluded_columns=None, excluded_operations=None, decorators=None
+    ):
         self._model = model
         self._excluded_columns = excluded_columns or []
         self._excluded_operations = excluded_operations or []
+        self._view_decorators = decorators or []
 
     @property
     def sqlalchemy_model(self):
@@ -448,11 +432,16 @@ class Model:
 
     @property
     def columns(self):
-        cols = [
-            Column.from_sqlalchemy_column(col)
-            for col in self._model.__table__.columns
-            if col.name not in self._excluded_columns
-        ]
+        cols = []
+        for col in self._model.__table__.columns:
+            if col.name not in self._excluded_columns:
+                cols.append(Column.from_sqlalchemy_column(col))
+            elif col.name in self._excluded_columns and not col.nullable:
+                warnings.warn(
+                    f"You have excluded the column: {col.name}. It is a "
+                    f"non-nullable column, and therefore required. By excluding "
+                    f"it you will not be able to 'create'"
+                )
         return cols
 
     @property
@@ -466,26 +455,18 @@ class Model:
     def make_sqlalchemy_model(self, **kwargs):
         return self._model(**kwargs)
 
-    @property
-    def create(self):
-        return ModelOperation("create", self)
+    def decorate(self, func):
+        for decorator in self._view_decorators:
+            func = decorator(func)
+        return func
 
-    @property
-    def read(self):
-        return ModelOperation("read", self)
-
-    @property
-    def update(self):
-        return ModelOperation("update", self)
-
-    @property
-    def delete(self):
-        return ModelOperation("delete", self)
+    def operation(self, operation):
+        return ModelOperation(operation, self)
 
     @property
     def operations(self):
         allowed_operations = CRUD_OPERATIONS - set(self._excluded_operations)
-        return [getattr(self, operation) for operation in allowed_operations]
+        return [self.operation(operation) for operation in allowed_operations]
 
     @property
     def endpoint(self):
@@ -500,7 +481,7 @@ class Model:
         return [c for c in self.columns if c.primary_key].pop()
 
     def redirect(self, blueprint):
-        endpoint = self.read.endpoint_with_blueprint(blueprint)
+        endpoint = self.operation("read").endpoint_with_blueprint(blueprint)
         return lambda: redirect(url_for(endpoint))
 
     def all(self):
@@ -532,24 +513,6 @@ def get_model_endpoint(endpoint):
         return "_".join(endpoint.split("_")[:-1])
     else:
         return endpoint
-
-
-#
-# class _ModelMgmtState:
-#     def __init__(self, mgmt):
-#         self.mgmt = mgmt
-
-#
-# def pretty_model(model):
-#     attrs = ", ".join(
-#         [
-#             f"{k}={getattr(model, k)}"
-#             for k in model.__dir__()
-#             if k in model.__table__.columns
-#         ]
-#     )
-#     rv = f"<{model.__class__.__name__}({attrs})>"
-#     return rv
 
 
 class ModelManagement:
@@ -591,11 +554,14 @@ class ModelManagement:
         blueprint, endpoint = request.endpoint.split(".")
         return self.endpoint == blueprint and endpoint == operation.endpoint
 
-    def register_model(self, model, excluded_columns=None, excluded_operations=None):
+    def register_model(
+        self, model, excluded_columns=None, excluded_operations=None, decorators=None
+    ):
         model = Model.from_sqlalchemy_model(
             model,
             excluded_columns=excluded_columns,
             excluded_operations=excluded_operations,
+            decorators=decorators,
         )
         self.models.append(model)
 
