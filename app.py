@@ -19,8 +19,8 @@ def create_app():
 
     db.init_app(app)
 
-    mgmt.register_model(User, excluded_operations=["create", "update"])
-    mgmt.register_model(Address, excluded_columns=["email_address"])
+    mgmt.register_model(User)
+    mgmt.register_model(Address)
 
     mgmt.init_app(app, db=db)
 
