@@ -1,0 +1,4 @@
+include LICENSE
+include README
+recursive-include *.jinja2
+recursive-include flask_model_management/templates *
