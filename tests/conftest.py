@@ -5,13 +5,14 @@ import tempfile
 import pytest
 from flask import abort
 from flask import request
-from flask_debugtoolbar import DebugToolbarExtension
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 
+# from flask_debugtoolbar import DebugToolbarExtension
+
 db = SQLAlchemy()
-toolbar = DebugToolbarExtension()
+# toolbar = DebugToolbarExtension()
 
 Base = declarative_base()
 

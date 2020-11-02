@@ -277,27 +277,6 @@ class Column:
         return f"Column('{self.name}', key='{self.key}', type='{self.type}')"
 
 
-# class Row:
-#     def __init__(self, **kwargs):
-#         self.result = kwargs
-#
-#     def __getattr__(self, item):
-#         return self.result[item]
-#
-#     def to_dict(self):
-#         return self.result
-#
-#     @classmethod
-#     def from_row(cls, row):
-#         kwargs = {}
-#         for col in row.__table__.columns:
-#             if col.primary_key is True:
-#                 kwargs["pk"] = col.name
-#             kwargs[col.name] = getattr(row, col.name)
-#
-#         return cls(**kwargs)
-
-
 class ModelOperationView:
     def __init__(self, model_operation):
         self.model_operation = model_operation
@@ -305,6 +284,10 @@ class ModelOperationView:
     @property
     def crud(self):
         return CRUD(self.model_operation.model.sqlalchemy_model)
+
+    @property
+    def form(self):
+        return DefaultForm.f
 
     def create(self):
         if request.method == "POST":

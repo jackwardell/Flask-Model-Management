@@ -71,17 +71,17 @@ def test_operation_excluded(client_factory, operation, models_and_columns):
         assert resp.status_code == 200
 
 
-@pytest.mark.parametrize("operation", CRUD_OPERATIONS)
-@pytest.mark.parametrize("models_and_columns", MODELS_AND_COLUMNS)
-def test_column_excluded(client_factory, operation, models_and_columns):
-    model, columns = models_and_columns
-
-    for col in columns:
-        client = client_factory(model, excluded_columns=[col])
-        resp = client.get(f"/model-management/{model.__tablename__}/{operation}")
-        assert resp.status_code == 200
-
-        assert col not in resp.data.decode()
-        # for c in columns:
-        #     if c != col:
-        #         assert c in resp.data.decode()
+# @pytest.mark.parametrize("operation", CRUD_OPERATIONS)
+# @pytest.mark.parametrize("models_and_columns", MODELS_AND_COLUMNS)
+# def test_column_excluded(client_factory, operation, models_and_columns):
+#     model, columns = models_and_columns
+#
+#     for col in columns:
+#         client = client_factory(model, excluded_columns=[col])
+#         resp = client.get(f"/model-management/{model.__tablename__}/{operation}")
+#         assert resp.status_code == 200
+#
+#         assert col not in resp.data.decode()
+#         # for c in columns:
+#         #     if c != col:
+#         #         assert c in resp.data.decode()
