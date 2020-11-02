@@ -13,7 +13,7 @@ git clone https://github.com/jackwardell/Flask-Model-Management.git
 ```
 cd Flask-Model-Management
 ```
-* Setup locally:
+* Install locally (NB: better to do in a virtual env):
 ```
 && pip3 install -e .
 ```
