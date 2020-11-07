@@ -1,15 +1,19 @@
 """use this to test the library locally"""
 from flask import Flask
+from flask_debugtoolbar import DebugToolbarExtension
 
-from flask_model_management import ModelManagement
+from flask_model_management.manager import ModelManager
 from tests.models import Address
 from tests.models import db
 from tests.models import populate
 from tests.models import User
 
+# from flask_model_management import ModelManagement
+
 
 def create_app():
-    mgmt = ModelManagement()
+    model_manager = ModelManager()
+    toolbar = DebugToolbarExtension()
 
     app = Flask(__name__)
     app.debug = True
@@ -19,10 +23,11 @@ def create_app():
 
     db.init_app(app)
 
-    mgmt.register_model(User)
-    mgmt.register_model(Address)
+    model_manager.register_model(User)
+    model_manager.register_model(Address)
 
-    mgmt.init_app(app, db=db)
+    model_manager.init_app(app, db)
+    toolbar.init_app(app)
 
     with app.app_context():
         db.create_all()

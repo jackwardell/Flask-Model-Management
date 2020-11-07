@@ -3,14 +3,12 @@ import warnings
 from pathlib import Path
 
 import attr
-from flask import redirect
-from flask import url_for
 from wtforms import BooleanField
 from wtforms import IntegerField
 from wtforms import StringField
 
-from . import ModelOperation
-from . import Query
+# from . import ModelOperation
+# from . import Query
 
 THIS_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 TEMPLATES_DIR = THIS_DIR / "templates"
@@ -147,17 +145,19 @@ class Model:
         for col in self.model.__table__.columns:
             if col.name not in self.excluded_columns:
                 cols.append(Column.from_sqlalchemy_column(col))
+
             elif col.name in self.excluded_columns and not col.nullable:
                 warnings.warn(
                     f"You have excluded the column: {col.name}. It is a "
                     f"non-nullable column, and therefore required. By excluding "
                     f"it you will not be able to 'create'"
                 )
+
         return cols
 
-    @property
-    def query(self):
-        return Query.from_sqlalchemy_model(self.model)
+    # @property
+    # def query(self):
+    #     return Query.from_sqlalchemy_model(self.model)
 
     @classmethod
     def from_sqlalchemy_model(cls, model, **kwargs):
@@ -171,13 +171,13 @@ class Model:
             func = decorator(func)
         return func
 
-    def operation(self, operation):
-        return ModelOperation(operation, self)
+    # def operation(self, operation):
+    #     return ModelOperation(operation, self)
 
-    @property
-    def operations(self):
-        allowed_operations = CRUD_OPERATIONS - set(self.excluded_operations)
-        return [self.operation(operation) for operation in allowed_operations]
+    # @property
+    # def operations(self):
+    #     allowed_operations = CRUD_OPERATIONS - set(self.excluded_operations)
+    #     return [self.operation(operation) for operation in allowed_operations]
 
     @property
     def endpoint(self):
@@ -187,22 +187,16 @@ class Model:
     def route(self):
         return self.name
 
-    @property
-    def primary_key(self):
-        return [c for c in self.columns if c.primary_key].pop()
+    # @property
+    # def primary_key(self):
+    #     return [c for c in self.columns if c.primary_key].pop()
 
-    def redirect(self, blueprint):
-        endpoint = self.operation("read").endpoint_with_blueprint(blueprint)
-        return lambda: redirect(url_for(endpoint))
+    # def redirect(self, blueprint):
+    #     endpoint = self.operation("read").endpoint_with_blueprint(blueprint)
+    #     return lambda: redirect(url_for(endpoint))
 
-    def all(self):
-        return self.query.limit(100).all()
-
-    def __repr__(self):
-        return f"Model(table='{self.name}', columns='{self.columns}')"
-
-    def __str__(self):
-        return self.name
+    # def all(self):
+    #     return self.query.limit(100).all()
 
 
 class Operation:
