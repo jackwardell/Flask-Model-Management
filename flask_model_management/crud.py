@@ -1,6 +1,6 @@
 import attr
-from flask import g
 
+from .helpers import get_model
 from flask_model_management.helpers import get_session
 
 
@@ -11,8 +11,9 @@ class CRUDFailure(Exception):
     operation = attr.ib()
 
 
-def get_crud():
-    return CRUD(g.model)
+def get_crud(tablename):
+    model = get_model(tablename)
+    return CRUD(model)
 
 
 @attr.s

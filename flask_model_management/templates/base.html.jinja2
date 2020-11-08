@@ -1,4 +1,5 @@
 {% from 'components/macros.html.jinja2' import operation_colour %}
+{#{% from 'components/macros.html.jinja2' import get_url %}#}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -30,7 +31,7 @@
 <body>
 
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="{{ get_url('index') }}">Flask Model Management</a>
+    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="{{ get_url(endpoints.index_view) }}">Flask Model Management</a>
     <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -45,27 +46,22 @@
                 </h6>
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link {% if is_url('index') %}active{% endif %}" href="{{ get_url('index') }}">
-                            <span data-feather="home"></span>Dashboard
-                        </a>
+                        <a class="nav-link {% if request.endpoint == (request.blueprint + "." + endpoints.index_view) %}active{% endif %}" href="{{ get_url(endpoints.index_view) }}"><span data-feather="home"></span>home</a>
                     </li>
-{#                    {% for model in models %}#}
-{#                        <li class="nav-item">#}
-{#                            <a class="nav-link {% if is_model(model) %}active{% endif %}" href="{{ get_url(model.name) }}">#}
-{#                                <span data-feather="database"></span>#}
-{#                                {{ model.name | title }}#}
-{#                            </a>#}
-{#                        </li>#}
-{#                        {% if operation and is_model(model) %}#}
-{#                            <li>#}
-{#                                <ul>#}
-{#                                    {% for operation in model.operations %}#}
-{#                                        <li><a class="nav-link {% if is_model_operation(operation) %}active{% endif %}" href="{{ get_url(operation.endpoint) }}">{{ operation | title }}</a></li>#}
-{#                                    {% endfor %}#}
-{#                                </ul>#}
-{#                            </li>#}
-{#                        {% endif %}#}
-{#                    {% endfor %}#}
+                    {% for model_name, model in model_manager.models.items() %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.view_args['tablename'] == model_name %}active{% endif %}" href="{{ get_url(endpoints.table_view, tablename=model_name) }}"><span data-feather="database"></span>{{ model_name }}</a>
+                        </li>
+                        {% if request.view_args['tablename'] == model_name %}
+                            <li>
+                                <ul>
+                                    {% for operation in model.operations %}
+                                        <li><a class="nav-link {% if operation.name in request.view_args.values() %}active{% endif %}" href="{{ get_url(endpoints.table_operation_view, tablename=model.name, operation=operation.name) }}">{{ operation.name }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
                 </ul>
             </div>
         </nav>
@@ -74,14 +70,10 @@
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
 
                 {% block title %}
-                    {% if operation %}
-                        <h1>{{ operation.name | title }} {{ operation.model.name }}</h1>
+                    {% if "tablename" in request.view_args %}
+                        <h1>{{ request.view_args['tablename'] }}</h1>
                     {% else %}
-                        {#                        {% if operation.model %}#}
-                        {#                            <h1>{{ operation.model.name }} Dashboard</h1>#}
-                        {#                        {% else %}#}
-                        <h1>Dashboard</h1>
-                        {#                        {% endif %}#}
+                        <h1>home</h1>
                     {% endif %}
                 {% endblock %}
 
@@ -99,25 +91,41 @@
             <div class="mb-3 border-bottom">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        {% if is_url('index') %}
-                            <li class="breadcrumb-item active">models under management</li>
+                        {% if request.endpoint == request.blueprint + "." +  endpoints.index_view %}
+                            <li class="breadcrumb-item">models under management</li>
+                        {% elif request.endpoint == request.blueprint + "." + endpoints.table_view %}
+                            <li class="breadcrumb-item active"><a href="{{ get_url(endpoints.index_view) }}">models under management</a></li>
+                            <li class="breadcrumb-item">{{ model.name }}</li>
                         {% else %}
-                            <li class="breadcrumb-item"><a href="{{ get_url('index') }}">models under management</a></li>
-                            <li class="breadcrumb-item {% if not operation %}active{% endif %}">{% if operation %}<a href="{{ get_url(operation.model.endpoint) }}">{% endif %}{{ operation.model.name }}{% if operation %}</a>{% endif %}</li>
-                            {% if operation %}
-                                <li class="breadcrumb-item active">{{ operation }}</li>
-                            {% endif %}
+                            <li class="breadcrumb-item active"><a href="{{ get_url(endpoints.index_view) }}">models under management</a></li>
+                            <li class="breadcrumb-item active"><a href="{{ get_url(endpoints.table_view, tablename=model.name) }}">{{ model.name }}</a></li>
+                            <li class="breadcrumb-item">{{ request.view_args['operation'] }}</li>
                         {% endif %}
+
+                        {#                            {% if "operation" in request.view_args %}#}
+                        {#                                <li class="breadcrumb-item active"><a href="{{ get_url(endpoints.table_view) }}">{{ model.name }}</a></li>#}
+                        {#                                <li class="breadcrumb-item active">{{ operation }}</li>#}
+                        {#                            {% else %}#}
+                        {#                                <li class="breadcrumb-item active"><a href="{{ get_url(endpoints.table_view) }}">{{ model.name }}</a></li>#}
+                        {#                                <li class="breadcrumb-item active">{{ operation }}</li>#}
+                        {#                            {% endif %}#}
+                        {##}
+                        {#                            <li class="breadcrumb-item {% if "operation" in request.view_args %}active{% endif %}">{% if operation %}<a href="{{ get_url(operation.model.endpoint) }}">{% endif %}{{ operation.model.name }}{% if operation %}</a>{% endif %}</li>#}
+                        {#                            {% if operation %}#}
+                        {#                                <li class="breadcrumb-item active">{{ operation }}</li>#}
+                        {#                            {% endif %}#}
                     </ol>
                 </nav>
             </div>
-            {#            {% if operation.model %}#}
-            {#                <div class="d-flex justify-content-between pb-3 mb-3 border-bottom">#}
-            {#                    {% for operation in operation.model.operations %}#}
-            {#                        <a href="{{ get_url(operation.model.endpoint, operation="/" + operation.name) }}" class="btn btn-{{ operation_colour(operation.name) }}" role="button" style="width: 100px">{{ operation.name | title }}</a>#}
-            {#                    {% endfor %}#}
-            {#                </div>#}
-            {#            {% endif %}#}
+
+{#            {% if "tablename" in request.view_args %}#}
+{#                <div class="d-flex justify-content-between pb-3 mb-3 border-bottom">#}
+{#                    {% for operation in model.operations %}#}
+{#                        <a href="{{ get_url(endpoints.table_operation_view, tablename=model.name, operation=operation.name) }}" class="btn btn-{{ operation_colour(operation.name) }}" role="button" style="width: 100px">{{ operation.name | title }}</a>#}
+{#                    {% endfor %}#}
+{#                </div>#}
+{#            {% endif %}#}
+
             {% block main %}
             {% endblock %}
         </main>

@@ -7,8 +7,8 @@ def get_session():
     return current_app.extensions["model_management"].db.session
 
 
-def get_model_from_tablename(tablename):
-    return current_app.extensions["model_management"].get_model(tablename)
+def get_model(tablename):
+    return current_app.extensions["model_management"].models[tablename]
 
 
 def get_model_operation_url(model, operation):

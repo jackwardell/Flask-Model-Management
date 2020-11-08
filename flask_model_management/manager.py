@@ -40,7 +40,7 @@ class ModelManager:
     url_prefix = attr.ib(default=URL_PREFIX)
 
     # set location for models to be stored
-    models = attr.ib(factory=list)
+    models = attr.ib(factory=dict)
 
     # set db object
     db = attr.ib(default=None)
@@ -75,13 +75,15 @@ class ModelManager:
         excluded_operations: list = None,
         decorators: list = None,
     ):
-        model = Model.from_sqlalchemy_model(
-            model,
-            excluded_columns=excluded_columns,
-            excluded_operations=excluded_operations,
-            view_decorators=decorators,
-        )
-        self.models.append(model)
+        params = {
+            "excluded_columns": excluded_columns or [],
+            "excluded_operations": excluded_operations or [],
+            "view_decorators": decorators or [],
+        }
+
+        model = Model.from_sqlalchemy_model(model, **params)
+
+        self.models[model.name] = model
 
     def init_app(self, app, db=None):
         if db:

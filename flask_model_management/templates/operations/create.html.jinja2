@@ -1,4 +1,4 @@
-{% extends 'operations/base_operation.html.jinja2' %}
+{% extends 'base_table.html.jinja2' %}
 
 {% block form_card %}
     <form method="post">
@@ -6,13 +6,13 @@
             <div class="form-group">
                 {{ form.csrf_token }}
             </div>
-            {% for field in form.fields_to_show() %}
-                <div class="form-group">
-                    {{ field.description.key }} {{ field.label }} {{ field.description.col_type }} {{ field.description.nullable }}:
-                    {{ field(class="form-control mb-4") }}
-                </div>
-            {% endfor %}
+{#            {% for field in form.data %}#}
+{#                <div class="form-group">#}
+{#                    {{ field.description.key }} {{ field.label }} {{ field.description.col_type }} {{ field.description.nullable }}:#}
+{#                    {{ field(class="form-control mb-4") }}#}
+{#                </div>#}
+{#            {% endfor %}#}
         </div>
-        {% include 'components/operation_confirm_submit_modal.html.jinja2' %}
+{#        {% include 'components/operation_confirm_submit_modal.html.jinja2' %}#}
     </form>
 {% endblock %}

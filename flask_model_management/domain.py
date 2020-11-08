@@ -16,7 +16,8 @@ TEMPLATES_DIR = THIS_DIR / "templates"
 ENDPOINT = "model_management"
 URL_PREFIX = "/model-management"
 
-CRUD_OPERATIONS = frozenset({"create", "read", "update", "delete"})
+# CRUD_OPERATIONS = frozenset({"create", "read", "update", "delete"})
+CRUD_OPERATIONS = ("create", "read", "update", "delete")
 
 MODEL_TEMPLATE = "model.html.jinja2"
 OPERATIONS_FOLDER = "operations/"
@@ -104,6 +105,10 @@ class Column:
     autoincrement = attr.ib(default=False)
 
     @property
+    def is_key(self):
+        return self.primary_key or self.foreign_key
+
+    @property
     def nullable(self):
         return not self.required
 
@@ -121,6 +126,9 @@ class Column:
         )
         return column
 
+    # def to_dict(self):
+    #     return attr.asdict(self, recurse=True)
+
 
 @attr.s
 class Model:
@@ -128,8 +136,11 @@ class Model:
 
     model = attr.ib()
     excluded_columns = attr.ib(factory=list)
-    excluded_operations = attr.ib(factory=list)
+    excluded_operations = attr.ib(factory=set)
     view_decorators = attr.ib(factory=list)
+
+    def __getitem__(self, item):
+        return [op for op in self.operations if op.name == item].pop()
 
     @property
     def sqlalchemy_model(self):
@@ -171,13 +182,14 @@ class Model:
             func = decorator(func)
         return func
 
-    # def operation(self, operation):
-    #     return ModelOperation(operation, self)
-
-    # @property
-    # def operations(self):
-    #     allowed_operations = CRUD_OPERATIONS - set(self.excluded_operations)
-    #     return [self.operation(operation) for operation in allowed_operations]
+    @property
+    def operations(self):
+        allowed_operations = [
+            Operation(operation, self)
+            for operation in CRUD_OPERATIONS
+            if operation not in self.excluded_operations
+        ]
+        return allowed_operations
 
     @property
     def endpoint(self):
@@ -199,5 +211,7 @@ class Model:
     #     return self.query.limit(100).all()
 
 
+@attr.s
 class Operation:
-    pass
+    name = attr.ib()
+    model = attr.ib()
