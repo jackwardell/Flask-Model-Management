@@ -1,11 +1,10 @@
 {% extends 'base_table.html.jinja2' %}
 
-{% from 'components/macros.html.jinja2' import operation_colour %}
-
+{#{% from 'components/macros.html.jinja2' import operation_colour %}#}
 {% block form_card %}
-    <form method="get">
+    <form method="get" id="form">
         <div role="form" id="form-content">
-            {% for fields in form.fields_to_show() | batch(4) %}
+            {% for fields in form.fields | batch(4) %}
                 <div class="form-row d-flex justify-content-center">
                     {% for field in fields %}
                         <div class="form-group col-3">
@@ -16,47 +15,139 @@
                 </div>
             {% endfor %}
         </div>
-        {% include 'components/operation_submit_button.html.jinja2' %}
+
+        {% from 'components/macros.html.jinja2' import operation_colour %}
+
+        <div class="form-group text-center">
+            {% with classes = "btn btn-" + operation_colour(request.view_args['operation']) %}
+                {% with label = request.view_args['operation'] + " " + model.name %}
+                    {{ form.confirm(class=classes, value=label) }}
+                {% endwith %}
+            {% endwith %}
+        </div>
+
+        {#        <span class="btn btn-primary" id="hello" onclick="read()">hwllo</span>#}
+        {#        {% include 'components/operation_submit_button.html.jinja2' %}#}
+
     </form>
 {% endblock %}
 
 {% block body %}
-    <table class="table table-bordered table-striped" id="table">
-        <thead>
-        <tr>
-            {% for col in operation.model.columns %}
-                <th>{% if col.primary_key %}<i data-feather="key"></i> {% endif %}{{ col.name }} [{{ col.type }}]</th>
-            {% endfor %}
-            {% if "update" in operation.model.operations %}
-                <th class="text-center">update</th>
-            {% endif %}
-            {% if "delete" in operation.model.operations %}
-                <th class="text-center">delete</th>
-            {% endif %}
-        </tr>
-        </thead>
-        <tbody>
-        {% for item in data %}
-            <tr>
-                {% for col in operation.model.columns %}
-                    <td>{{ item[col.name] }}</td>
-                {% endfor %}
-                {% if "update" in operation.model.operations %}
-                    <td class="text-center"><a href="{{ get_url(operation.model.endpoint, operation="update", from_table=True, **get_params(item)) }}" class="btn btn-warning">Update</a></td>
-                {% endif %}
-                {% if "delete" in operation.model.operations %}
-                    <td class="text-center"><a href="{{ get_url(operation.model.endpoint, operation="delete", from_table=True, **get_params(item)) }}" class="btn btn-danger">Delete</a></td>
-                {% endif %}
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <div class="container-fluid p-0 mb-5">
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-bordered table-striped" id="table">
+                    <thead>
+                    <tr>
+                        {% for col in model.columns %}
+                            <th>{% if col.primary_key %}<i data-feather="key"></i> {% endif %}{{ col.name }} [{{ col.type }}]</th>
+                        {% endfor %}
+                        {#            {% if "update" in model.allowed_operations %}#}
+                        {#                <th class="text-center">update</th>#}
+                        {#            {% endif %}#}
+                        {#            {% if "delete" in model.allowed_operations %}#}
+                        {#                <th class="text-center">delete</th>#}
+                        {#            {% endif %}#}
+                    </tr>
+                    </thead>
+                    {#            <tbody>#}
+                    {#            {% for item in data %}#}
+                    {#                <tr>#}
+                    {#                    {% for col in operation.model.columns %}#}
+                    {#                        <td>{{ item[col.name] }}</td>#}
+                    {#                    {% endfor %}#}
+                    {#                    {% if "update" in operation.model.operations %}#}
+                    {#                        <td class="text-center"><a href="{{ get_url(operation.model.endpoint, operation="update", from_table=True, **get_params(item)) }}" class="btn btn-warning">Update</a></td>#}
+                    {#                    {% endif %}#}
+                    {#                    {% if "delete" in operation.model.operations %}#}
+                    {#                        <td class="text-center"><a href="{{ get_url(operation.model.endpoint, operation="delete", from_table=True, **get_params(item)) }}" class="btn btn-danger">Delete</a></td>#}
+                    {#                    {% endif %}#}
+                    {#                </tr>#}
+                    {#            {% endfor %}#}
+                    {#            </tbody>#}
+                </table>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}
     <script>
-        $(document).ready(function () {
-            $('#table').DataTable();
-        });
+        var table = $("#table").DataTable({
+            "ajax": {
+                url: "{{ get_url(endpoints.table_api, tablename=model.name) }}",
+                type: "GET"
+            },
+            "columns": [
+                {% for column in model.columns %}
+                    {"data": "{{ column.name }}"},
+                {% endfor %}
+
+                {#                {% if "update" in model.allowed_operations %}#}
+                {#                    {#}
+                {#                        "data": "update",#}
+                {#                        "defaultContent": "<a class=\"btn btn-warning\" href=\"{{ url_for(request.blueprint + "." + endpoints.table_operation_view, tablename=model.name, operation='update') }}\" >update</a>"#}
+                {#                    },#}
+                {#                {% endif %}#}
+                {##}
+                {#                {% if "delete" in model.allowed_operations %}#}
+                {#                    {#}
+                {#                        "data": "delete",#}
+                {#                        "defaultContent": "<span class=\"btn btn-danger\">delete</span>"#}
+                {#                    },#}
+                {#                {% endif %}#}
+            ],
+            {#"columnDefs": [{#}
+            {#    "targets": [-2, -1],#}
+            {#    "data": null,#}
+            {#    "defaultContent": "<span class=\"btn btn-primary\">Click!</span>"#}
+            {# }]#}
+        })
+
+
+        $("#confirm").on('click', function () {
+            function get_form_data() {
+                var form_data = $("#form :input")
+                    .filter(function (index, element) {
+                        return $(element).val() != '';
+                    })
+                    .serialize();
+                $("#form").trigger("reset");
+                return form_data
+            }
+
+            $.get('{{ get_url(endpoints.table_api, tablename=model.name) }}', get_form_data(), function () {
+            }).done(function (result) {
+                table.clear().draw();
+                {#$.each(result, function (i, v) {#}
+                {#console.log(new URLSearchParams(v).toString())#}
+                {# })#}
+                {#result.each(function (i, obj) {#}
+                {#    console.log(i.serialize())#}
+                {# } )#}
+
+                table.rows.add(result.data).draw();
+            });
+
+            return false
+        })
+
+        {#function read() {#}
+        {##}
+        {#   #}
+        {# }#}
+
+
+        {#$(document).ready(function () {#}
+        {#    $('#table').DataTable({#}
+        {#        "ajax": {#}
+        {#            url: "{{ get_url(endpoints.table_api, tablename=model.name) }}",#}
+        {#            type: "GET"#}
+        {#        },#}
+        {#        "columns": [#}
+        {#                {% for column in model.columns %}{"data": "{{ column.name }}"},{% endfor %}#}
+        {#        ]#}
+        {#    });#}
+        {# });#}
     </script>
 {% endblock %}

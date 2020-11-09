@@ -1,55 +1,144 @@
 {% extends 'base_table.html.jinja2' %}
 
 {% block form_card %}
-    <form method="post">
-        <div class="form-group">
-            {{ form.csrf_token }}
-        </div>
-        <div class="row">
-            {% if request.args.get("from_table") == "True" %}
-                <div class="col-12">
-                    <div role="form" id="form-content">
-                        {% for field in form.fields_to_show() %}
-                            <div class="form-group">
-                                {{ field.description.key }} {{ field.label }} {{ field.description.col_type }} {{ field.description.nullable }}:
-                                {% if field.description.is_pk and request.args.get("from_table") == "True" %}
-                                    {{ field(class="form-control mb-4", disabled="True") }}
-                                {% else %}
-                                    {{ field(class="form-control mb-4") }}
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% else %}
-                <div class="col-6">
-                    <div class="mb-3 border-bottom">
-                        <h6 class="card-title">Find these entries</h6>
-                        <p class="text-muted">Query the table by these values to get the entries you want to update</p>
-                    </div>
-                    {% for field in form.query_fields_to_show() %}
+    {#    <form method="post">#}
+    <div class="row">
+
+        {% if request.args.get("_model_management_operational_mode") == "single" %}
+
+            <div class="col-12">
+                <div role="form" id="form-content">
+                    {% for field in form.fields %}
                         <div class="form-group">
                             {{ field.description.key }} {{ field.label }} {{ field.description.col_type }} {{ field.description.nullable }}:
-                            {{ field(class="form-control mb-4") }}
+                            {% if field.description.is_pk and request.args.get("from_table") == "True" %}
+                                {{ field(class="form-control mb-4", disabled="True") }}
+                            {% else %}
+                                {{ field(class="form-control mb-4") }}
+                            {% endif %}
                         </div>
                     {% endfor %}
                 </div>
-                <div class="col-6">
-                    <div class="mb-3 border-bottom">
-                        <h6 class="card-title">Update to these values</h6>
-                        <p class="text-muted">Then update those entries with the values inputted to the fields below</p>
+            </div>
+
+        {% else %}
+
+            <div class="col-6">
+                <div class="mb-3">
+                    <h6 class="card-title text-center m-0">find these entries</h6>
+                    <p class="text-muted text-center">query the table by these values to get the entries you want to update</p>
+                </div>
+                <form id="filter-form">
+                    <div class="form-group">
+                        {{ form.csrf_token }}
                     </div>
                     <div role="form" id="form-content">
-                        {% for field in form.fields_to_show() %}
+                        {% for field in form.fields %}
                             <div class="form-group">
                                 {{ field.description.key }} {{ field.label }} {{ field.description.col_type }} {{ field.description.nullable }}:
                                 {{ field(class="form-control mb-4") }}
                             </div>
                         {% endfor %}
                     </div>
+                </form>
+            </div>
+
+            <div class="col-6">
+                <div class="mb-3">
+                    <h6 class="card-title text-center m-0">change to these values</h6>
+                    <p class="text-muted text-center">then update those entries with the values inputted to the fields below</p>
                 </div>
-            {% endif %}
-        </div>
-        {% include 'components/operation_confirm_submit_modal.html.jinja2' %}
-    </form>
+                <form id="update-form">
+                    <div class="form-group">
+                        {{ form.csrf_token }}
+                    </div>
+                    <div role="form" id="form-content">
+                        {% for field in form.fields %}
+                            <div class="form-group">
+                                {{ field.description.key }} {{ field.label }} {{ field.description.col_type }} {{ field.description.nullable }}:
+                                {{ field(class="form-control mb-4") }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </form>
+            </div>
+
+        {% endif %}
+
+    </div>
+    {% from 'components/macros.html.jinja2' import operation_colour %}
+
+    <div class="form-group text-center">
+        {% with classes = "btn btn-" + operation_colour(request.view_args['operation']) %}
+            {% with label = request.view_args['operation'] + " " + model.name %}
+                {{ form.confirm(class=classes, value=label) }}
+            {% endwith %}
+        {% endwith %}
+    </div>
+
+
+    <script>
+        function getFormData(formId, label) {
+            var querySuffix = ""
+            var queryPrefix = $("#" + formId + " :input")
+                .filter(function (index, element) {
+                    if ($(element).val() != '' && element.name != 'csrf_token') {
+                        console.log($(element).val())
+                        querySuffix += "&" + label + "=" + element.name
+                        return true;
+                    } else {
+                        return false
+                    }
+                })
+                .serialize();
+            $("#" + formId).trigger("reset");
+            return queryPrefix + querySuffix
+        }
+        $("#confirm").on('click', function () {
+            var filterForm = getFormData("filter-form", "filter")
+            var updateForm = getFormData("update-form", "update")
+            console.log(filterForm)
+            console.log(updateForm)
+        })
+
+        {#$("#confirm").on('click', function () {#}
+        {#    $.put('{{ get_url(endpoints.table_api, tablename=model.name) }}', getFormData(), function (result) {#}
+        {#        var success_alert = $("#success-alert")#}
+        {#        var failure_alert = $("#failure-alert")#}
+        {##}
+        {#        if (result.success) {#}
+        {#            success_alert.hide()#}
+        {#            failure_alert.hide()#}
+        {#            $("#success-text").text(result.message);#}
+        {#            success_alert.show();#}
+        {#        } else {#}
+        {#            success_alert.hide()#}
+        {#            failure_alert.hide()#}
+        {#            $("#failure-text").text(result.message);#}
+        {#            failure_alert.show();#}
+        {#        }#}
+        {#    });#}
+        {#    return false;#}
+        {#})
+        #}
+
+        {#$("#alerts").html(#}
+        {#    "<div class=\"alert alert-success alert-dismissible text-center fade show\" role=\"alert\">\n" +#}
+        {#    "  {{ model.name }} created " + ".\n" +#}
+        {#    "  <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">\n" +#}
+        {#    "    <span aria-hidden=\"true\">&times;</span>\n" +#}
+        {#    "  </button>\n" +#}
+        {#    "</div>"#}
+        {#)#}
+
+        {#$("#hello").on('click', function () {#}
+        {#    $.post('{{ get_url(endpoints.table_api, tablename=model.name) }}', $("#form").serialize(), function () {#}
+        {#        console.log('success')#}
+        {#    })#}
+        {# })#}
+    </script>
+
+
+    {#    {% include 'components/operation_confirm_submit_modal.html.jinja2' %}#}
+    {#    </form>#}
 {% endblock %}

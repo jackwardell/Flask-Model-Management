@@ -3,33 +3,49 @@
 {% from 'components/macros.html.jinja2' import operation_colour %}
 
 {% block form_card %}
-    <h5 class="card-title">tablename:</h5>
-    <h1 class="mb-3"><span class="badge badge-secondary">{{ request.view_args['tablename'] }}</span></h1>
+{#    <div class="mb-3">#}
+{#        <h5 class="card-title">tablename: </h5>#}
+{#        <div class="list-group">#}
+{#            <div class="list-group-item">#}
+{#                <h5 class="mb-1 mr-2">{{ request.view_args['tablename'] }}</h5>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
 
-    <h5 class="card-title">columns:</h5>
-    <div class="list-group">
-        {% for column in model.columns %}
-            <div class="list-group-item flex-column align-items-start">
-                <div class="d-flex w-100 justify-content-start">
-                    <h5 class="mb-1 mr-2">{{ column.name }}: [{{ column.type }}]</h5>
-                    {% if column.is_key %}
-                        <i data-feather="key"></i>
-                        <small>{% if column.primary_key %}primary key{% elif column.foreign_key %}foreign key{% endif %}</small>
+    <div>
+        <h5 class="card-title">columns:</h5>
+        <div class="list-group">
+            {% for column in model.columns %}
+                <div class="list-group-item flex-column align-items-start">
+                    <div class="d-flex w-100 justify-content-start">
+                        <h5 class="mb-1 mr-2">{{ column.name }}: [{{ column.type }}]</h5>
+                        {% if column.is_key %}
+                            <i data-feather="key"></i>
+                            <small>{% if column.primary_key %}primary key{% elif column.foreign_key %}foreign key{% endif %}</small>
+                        {% endif %}
+                    </div>
+                    <p>{% if column.required %}<span class="text-danger">REQUIRED (NOT NULLABLE)</span>{% else %}<span class="text-primary">NULLABLE</span>{% endif %}</p>
+                    {% if column.default %}
+                        <p class="m-0">default: {{ column.default }}</p>
+                    {% else %}
+                        <p class="m-0">No default</p>
                     {% endif %}
                 </div>
-                <p>{% if column.required %}<span class="text-danger">REQUIRED (NOT NULLABLE)</span>{% else %}<span class="text-primary">NULLABLE</span>{% endif %}</p>
-                {% if column.default %}
-                    <p class="m-0">default: {{ column.default }}</p>
-                {% else %}
-                    <p class="m-0">No default</p>
-                {% endif %}
-            </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
     </div>
 
-
-    {#                {% for k, v in column.to_dict().items() %}#}
-    {#                    {{ k }} = {{ v }}#}
-    {#                {% endfor %}#}
+    <div class="mt-5">
+        <h5 class="card-title">allowed operations:</h5>
+        <div class="list-group">
+            {% for operation in model.operations %}
+                <div class="list-group-item flex-column align-items-start">
+                    <div class="d-flex w-100 justify-content-start">
+                        <h5 class="mb-1 mr-2"><a class="btn btn-{{ operation_colour(operation.name) }}" type="button" href="{{ get_url(endpoints.table_operation_view, tablename=model.name, operation=operation.name) }}">{{ operation.name }} {{ model.name }}</a></h5>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 
 {% endblock %}

@@ -40,7 +40,7 @@ def method_to_operation(method):
         raise ValueError("Invalid HTTP Method")
 
 
-def get_operation():
+def get_operation_name():
     return method_to_operation(request.method)
 
 

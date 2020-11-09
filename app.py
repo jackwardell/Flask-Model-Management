@@ -20,6 +20,7 @@ def create_app():
     app.config["SECRET_KEY"] = "hello world"
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
     app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
+    app.config["DEBUG_TB_PROFILER_ENABLED"] = True
 
     db.init_app(app)
 

@@ -1,13 +1,5 @@
 {% extends 'base.html.jinja2' %}
 
 {% block main %}
-    {{ request }}
-    {% for k, v in request.__dict__.items() %}
-        <p>{{ k }} = {{ v }}</p>
-    {% endfor %}
-    <p></p>
-    <br>
-    {% for i in request.__dir__() %}
-        <p>{{ i }} = {{ request[i] }}</p>
-    {% endfor %}
+
 {% endblock %}

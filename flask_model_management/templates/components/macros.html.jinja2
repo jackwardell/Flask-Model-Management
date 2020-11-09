@@ -6,3 +6,21 @@
 {% macro get_url(endpoint) -%}
     {{ request.blueprint + "." + endpoint }}
 {%- endmacro %}
+
+
+{% macro get_icon(operation) -%}
+    {% if operation == 'create' %}
+        <i data-feather="edit-2"></i>
+    {% elif operation == 'read' %}
+        <i data-feather="book-open"></i>
+    {% elif operation == 'update' %}
+        <i data-feather="edit"></i>
+    {% else %}
+        <i data-feather="delete"></i>
+    {% endif %}
+{%- endmacro %}
+
+
+{% macro get_operation_header(operation) -%}
+    {{ get_icon(operation) }} {{ operation }}
+{%- endmacro %}

@@ -29,48 +29,50 @@ SUCCESS_MESSAGE = "success"
 INFO_MESSAGE = "primary"
 
 
-class FieldUI:
-    def __init__(self, field):
-        self._field = field
+#
+# class FieldUI:
+#     def __init__(self, field):
+#         self._field = field
+#
+#     def __call__(self, *args, **kwargs):
+#         return self._field(*args, **kwargs)
 
-    def __call__(self, *args, **kwargs):
-        return self._field(*args, **kwargs)
+# def make_field(self, operation):
+#     description = FieldUI.from_column(self)
+#
+#     render_kw = {}
+#     # todo: consider using description everywhere over render_kw?
+#     if self.autoincrement is True and operation == "create":
+#         render_kw["disabled"] = "true"
+#         render_kw["placeholder"] = "AUTOINCREMENT"
+#
+#     if all(
+#         [
+#             self.required,
+#             operation == "create",
+#             "disabled" not in render_kw,
+#             not self.type.is_bool,
+#         ]
+#     ):
+#         render_kw["required"] = "true"
+#
+#     field = self.type.make_wtf_field(
+#         self.name,
+#         default=self.default,
+#         description=description,
+#         render_kw=(render_kw or None),
+#     )
+#     return field
 
-    # def make_field(self, operation):
-    #     description = FieldUI.from_column(self)
-    #
-    #     render_kw = {}
-    #     # todo: consider using description everywhere over render_kw?
-    #     if self.autoincrement is True and operation == "create":
-    #         render_kw["disabled"] = "true"
-    #         render_kw["placeholder"] = "AUTOINCREMENT"
-    #
-    #     if all(
-    #         [
-    #             self.required,
-    #             operation == "create",
-    #             "disabled" not in render_kw,
-    #             not self.type.is_bool,
-    #         ]
-    #     ):
-    #         render_kw["required"] = "true"
-    #
-    #     field = self.type.make_wtf_field(
-    #         self.name,
-    #         default=self.default,
-    #         description=description,
-    #         render_kw=(render_kw or None),
-    #     )
-    #     return field
 
-    @classmethod
-    def from_column(cls, col):
-        if col == int:
-            return cls(IntegerField)
-        elif col == bool:
-            return cls(BooleanField)
-        else:
-            return cls(StringField)
+def field_from_column(column):
+    if column.type == int:
+        field = IntegerField
+    elif column.type == bool:
+        field = BooleanField
+    else:
+        field = StringField
+    return field(column.name)
 
 
 @attr.s(eq=False)
@@ -136,7 +138,7 @@ class Model:
 
     model = attr.ib()
     excluded_columns = attr.ib(factory=list)
-    excluded_operations = attr.ib(factory=set)
+    excluded_operations = attr.ib(factory=list)
     view_decorators = attr.ib(factory=list)
 
     def __getitem__(self, item):
@@ -183,13 +185,20 @@ class Model:
         return func
 
     @property
-    def operations(self):
+    def allowed_operations(self):
         allowed_operations = [
-            Operation(operation, self)
+            operation
             for operation in CRUD_OPERATIONS
             if operation not in self.excluded_operations
         ]
         return allowed_operations
+
+    @property
+    def operations(self):
+        operations = [
+            ModelOperation(operation, self) for operation in self.allowed_operations
+        ]
+        return operations
 
     @property
     def endpoint(self):
@@ -212,6 +221,6 @@ class Model:
 
 
 @attr.s
-class Operation:
+class ModelOperation:
     name = attr.ib()
     model = attr.ib()

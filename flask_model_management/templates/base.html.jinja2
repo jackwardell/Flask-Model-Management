@@ -1,5 +1,6 @@
 {% from 'components/macros.html.jinja2' import operation_colour %}
 {#{% from 'components/macros.html.jinja2' import get_url %}#}
+{% from 'components/macros.html.jinja2' import get_operation_header %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -54,9 +55,9 @@
                         </li>
                         {% if request.view_args['tablename'] == model_name %}
                             <li>
-                                <ul>
+                                <ul class="nav flex-column">
                                     {% for operation in model.operations %}
-                                        <li><a class="nav-link {% if operation.name in request.view_args.values() %}active{% endif %}" href="{{ get_url(endpoints.table_operation_view, tablename=model.name, operation=operation.name) }}">{{ operation.name }}</a></li>
+                                        <li class="nav-item ml-3"><a class="nav-link {% if operation.name in request.view_args.values() %}active{% endif %}" href="{{ get_url(endpoints.table_operation_view, tablename=model.name, operation=operation.name) }}">{{ get_operation_header(operation.name) }}</a></li>
                                     {% endfor %}
                                 </ul>
                             </li>

@@ -6,10 +6,9 @@
             <div class="form-group">
                 {{ form.csrf_token }}
             </div>
-            {% for field in form.fields_to_show() %}
+            {% for field in form.fields %}
                 <div class="form-group">
-                    {{ field.description.key }} {{ field.label }} {{ field.description.col_type }} {{ field.description.nullable }}:
-                    {#                    {% if field.description.boolean %}<br><span class="p text-muted">Boolean fields are either TRUE or FALSE. Compare this to a text or integer field where an empty submitted value will be NULL. Therefore the boolean field below will be submitted with either a TRUE or FALSE value not a NULL value.</span>{% endif %}#}
+                    {{ field.label }}:
                     {% if field.description.is_pk and request.args.get("from_table") == "True" %}
                         {{ field(class="form-control mb-4", disabled="True") }}
                     {% else %}

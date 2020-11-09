@@ -1,31 +1,71 @@
 {% extends 'base.html.jinja2' %}
 
+{% from 'components/macros.html.jinja2' import get_operation_header %}
 {% block main %}
     {% include 'components/flash.html.jinja2' %}
+
+    <div id="alerts">
+        <div class="alert alert-success alert-dismissible fade show" role="alert" id="success-alert" style="display: none">
+            <span id="success-text"></span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" id="failure-alert" style="display: none">
+            <span id="failure-text"></span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </div>
 
     <div class="container-fluid p-0">
         <div class="card mt-2 mb-4">
             <div class="card-header">
                 <ul class="nav nav-tabs card-header-tabs">
                     <li class="nav-item">
-                        <a class="nav-link {% if (request.view_args['tablename'] == model.name) and ('operation' not in request.view_args) %}active{% endif %}" href="{{ get_url(endpoints.table_view, tablename=model.name) }}">home</a>
+                        <a class="nav-link {% if (request.view_args['tablename'] == model.name) and ('operation' not in request.view_args) %}active{% endif %}" href="{{ get_url(endpoints.table_view, tablename=model.name) }}"><i data-feather="home"></i> home</a>
                     </li>
                     {% for operation in model.operations %}
                         <li class="nav-item">
-                            <a class="nav-link {% if request.view_args.get("operation") == operation.name %}active{% endif %}" href="{{ get_url(endpoints.table_operation_view, tablename=model.name, operation=operation.name) }}">{{ operation.name }}</a>
+                            <a class="nav-link {% if request.view_args.get("operation") == operation.name %}active{% endif %}" href="{{ get_url(endpoints.table_operation_view, tablename=model.name, operation=operation.name) }}">{{ get_operation_header(operation.name) }}</a>
                         </li>
                     {% endfor %}
                 </ul>
             </div>
+
+            <div class="text-center pt-3 border-bottom">
+                {% if "operation" in request.view_args %}
+                    <h5>{% if request.view_args["operation"] in ("update", "delete") and request.args.get("_model_management_operational_mode") != "single" %}bulk{% endif %} {{ request.view_args["operation"] }}: {{ model.name }}</h5>
+                {% else %}
+                    <h5>model: {{ model.name }}</h5>
+                {% endif %}
+                {% if request.view_args["operation"] == "create" %}
+                    <p class="text-muted text-center">use this form to create an entry in {{ model.name }}</p>
+                {% elif request.view_args["operation"] == "read" %}
+                    <p class="text-muted text-center">use this form to read from {{ model.name }}</p>
+                {% elif request.view_args["operation"] == "update" and request.args.get("_model_management_operational_mode") != "single" %}
+                    <p class="text-muted text-center">use this form bulk update many entries in {{ model.name }} with new values</p>
+                {% elif request.view_args["operation"] == "update" %}
+                    <p class="text-muted text-center">use this form to update a single entry from {{ model.name }} </p>
+                {% elif request.view_args["operation"] == "delete" and request.args.get("_model_management_operational_mode") != "single" %}
+                    <p class="text-muted text-center">use this form to bulk delete many entries from {{ model.name }}</p>
+                {% elif request.view_args["operation"] == "delete" %}
+                    <p class="text-muted text-center">use this form to delete a single entry from {{ model.name }}</p>
+                {% else %}
+                    <p class="text-muted text-center">use this page to view the metadata for {{ model.name }}</p>
+                {% endif %}
+            </div>
+
             <div class="card-body">
                 {% block form_card %}
                 {% endblock %}
             </div>
-        </div>`
+        </div>
     </div>
-
 
     {% block body %}
     {% endblock %}
+
 
 {% endblock %}

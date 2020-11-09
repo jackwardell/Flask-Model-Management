@@ -14,7 +14,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title text-center">Are you sure you want to {{ operation }} {{ operation.model }}?</h5>
+                <h5 class="modal-title text-center">Are you sure you want to {{ request.view_args['operation'] }} {{ model.name }}?</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
