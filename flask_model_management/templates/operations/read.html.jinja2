@@ -2,16 +2,39 @@
 
 {#{% from 'components/macros.html.jinja2' import operation_colour %}#}
 {% block form_card %}
-    <form method="get" id="form">
+    <form id="filter-form">
         <div role="form" id="form-content">
+            <div class="form-group">
+                {{ form.csrf_token }}
+            </div>
             {% for fields in form.fields | batch(4) %}
                 <div class="form-row d-flex justify-content-center">
-                    {% for field in fields %}
+                    {% for field in form.fields %}
                         <div class="form-group col-3">
-                            {{ field.label(class="col-form-label") }}
-                            {{ field(class="form-control col-12") }}
+                            {% if field.type == 'RadioField' %}
+                                {{ field.label(class="col-form-label") }}:
+                                <div class="text-center">
+                                    {% for subfield in field %}
+                                        <div class="form-check form-check-inline">
+                                            {{ subfield(class="form-check-input") }}
+                                            {{ subfield.label(class="form-check-label") }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ field.label(class="col-form-label") }}:
+                                {{ field(class="form-control col-12") }}
+                            {% endif %}
                         </div>
                     {% endfor %}
+
+
+                    {#                    {% for field in fields %}#}
+                    {#                        <div class="form-group col-3">#}
+                    {#                            {{ field.label(class="col-form-label") }}#}
+                    {#                            {{ field(class="form-control col-12") }}#}
+                    {#                        </div>#}
+                    {#                    {% endfor %}#}
                 </div>
             {% endfor %}
         </div>
@@ -106,17 +129,20 @@
 
 
         $("#confirm").on('click', function () {
-            function get_form_data() {
-                var form_data = $("#form :input")
+            function getFormData(formId) {
+                var formData = $("#" + formId + " :input")
                     .filter(function (index, element) {
                         return $(element).val() != '';
                     })
                     .serialize();
-                $("#form").trigger("reset");
-                return form_data
+                {#$("#" + formId).trigger("reset");#}
+                return formData
             }
 
-            $.get('{{ get_url(endpoints.table_api, tablename=model.name) }}', get_form_data(), function () {
+            var formData = getFormData('filter-form')
+            console.log(formData)
+
+            $.get('{{ get_url(endpoints.table_api, tablename=model.name) }}', formData, function () {
             }).done(function (result) {
                 table.clear().draw();
                 {#$.each(result, function (i, v) {#}

@@ -68,26 +68,14 @@
         </nav>
 
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-1 mb-3 border-bottom">
                 {% block title %}
                     {% if "tablename" in request.view_args %}
                         <h1>{{ request.view_args['tablename'] }}</h1>
                     {% else %}
-                        <h1>home</h1>
+                        <h1>homej</h1>
                     {% endif %}
                 {% endblock %}
-
-                {#                <div class="btn-toolbar mb-2 mb-md-0">#}
-                {#                    <div class="btn-group mr-2">#}
-                {#                        <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>#}
-                {#                        <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>#}
-                {#                    </div>#}
-                {#                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">#}
-                {#                        <span data-feather="calendar"></span> This week#}
-                {#                    </button>#}
-                {#                </div>#}
-
             </div>
             <div class="mb-3 border-bottom">
                 <nav aria-label="breadcrumb">
@@ -119,13 +107,13 @@
                 </nav>
             </div>
 
-{#            {% if "tablename" in request.view_args %}#}
-{#                <div class="d-flex justify-content-between pb-3 mb-3 border-bottom">#}
-{#                    {% for operation in model.operations %}#}
-{#                        <a href="{{ get_url(endpoints.table_operation_view, tablename=model.name, operation=operation.name) }}" class="btn btn-{{ operation_colour(operation.name) }}" role="button" style="width: 100px">{{ operation.name | title }}</a>#}
-{#                    {% endfor %}#}
-{#                </div>#}
-{#            {% endif %}#}
+            {#            {% if "tablename" in request.view_args %}#}
+            {#                <div class="d-flex justify-content-between pb-3 mb-3 border-bottom">#}
+            {#                    {% for operation in model.operations %}#}
+            {#                        <a href="{{ get_url(endpoints.table_operation_view, tablename=model.name, operation=operation.name) }}" class="btn btn-{{ operation_colour(operation.name) }}" role="button" style="width: 100px">{{ operation.name | title }}</a>#}
+            {#                    {% endfor %}#}
+            {#                </div>#}
+            {#            {% endif %}#}
 
             {% block main %}
             {% endblock %}

@@ -3,6 +3,11 @@ from flask import request
 from flask import url_for
 
 
+def get_logger():
+    return type("logger", (), {"info": lambda *args: print(*args)})
+    # return current_app.logger
+
+
 def get_session():
     return current_app.extensions["model_management"].db.session
 

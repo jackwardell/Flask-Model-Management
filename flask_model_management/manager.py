@@ -92,7 +92,6 @@ class ModelManager:
         from .app import apply_to_app
 
         blueprint = apply_to_app(self.create_blueprint())
-
         app.register_blueprint(blueprint)
         app.extensions["model_management"] = self
 

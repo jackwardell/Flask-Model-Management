@@ -1,11 +1,19 @@
 import os
 import warnings
+from datetime import date
+from datetime import datetime
+from decimal import Decimal
+from functools import partial
 from pathlib import Path
 
 import attr
-from wtforms import BooleanField
+from wtforms import DecimalField
+from wtforms import FloatField
 from wtforms import IntegerField
 from wtforms import StringField
+from wtforms.fields import DateField
+from wtforms.fields import DateTimeField
+from wtforms.fields import RadioField
 
 # from . import ModelOperation
 # from . import Query
@@ -65,13 +73,32 @@ INFO_MESSAGE = "primary"
 #     return field
 
 
+def true_false_or_none(value):
+    if value == "True":
+        return True
+    elif value == "False":
+        return False
+    else:
+        return None
+
+
 def field_from_column(column):
     if column.type == int:
         field = IntegerField
     elif column.type == bool:
-        field = BooleanField
+        field = partial(
+            RadioField, coerce=true_false_or_none, choices=("True", "False", "None")
+        )
+    elif column.type == float:
+        field = FloatField
+    elif column.type == Decimal:
+        field = DecimalField
+    elif column.type == datetime:
+        field = DateTimeField
+    elif column.type == date:
+        field = DateField
     else:
-        field = StringField
+        field = partial(StringField, filters=[lambda x: x or None])
     return field(column.name)
 
 

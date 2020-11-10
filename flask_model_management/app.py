@@ -1,14 +1,17 @@
+import http
+
 from flask import current_app
 from flask import jsonify
 from flask import render_template
 from flask import request
 from flask import url_for
+from flask.views import MethodView
 
 from .crud import CRUDFailure
 from .crud import get_crud
 from .form import get_form
+from .helpers import get_logger
 from .helpers import get_model
-from .helpers import get_operation_name
 
 
 def get_template(operation):
@@ -69,10 +72,18 @@ def is_model_operation():
 
 
 def create_response(message, status_code, data=None, **kwargs):
+    http_code = http.HTTPStatus(status_code)
     success = str(status_code).startswith("2")
     if data:
         kwargs["data"] = data
-    return jsonify(message=message, success=success, **kwargs)
+    return jsonify(
+        message=message,
+        success=success,
+        status_code=status_code,
+        phrase=http_code.phrase,
+        description=http_code.description,
+        **kwargs,
+    )
 
 
 class Endpoints:
@@ -147,37 +158,107 @@ def apply_to_app(app):
         template = get_template(operation)
         return render_template(template, model=model, form=form)
 
-    @app.route(
+    class TableAPI(MethodView):
+        @staticmethod
+        def data(multi_dict):
+            return f'({", ".join([f"{k}={v}" for k, v in multi_dict.items()])})'
+
+        def post(self, tablename):
+            model = get_model(tablename)
+            form = get_form(model["create"], request.form)
+
+            if form.validate_on_submit():
+                result = get_crud(tablename)["create"](*form.params)
+                message = f"{tablename} created with params: {self.data(request.form)}"
+                get_logger().info(f"API: {message}")
+                return create_response(message, 200, data=result)
+
+            else:
+                return create_response("Invalid query fields", 400)
+
+        def get(self, tablename):
+            model = get_model(tablename)
+            form = get_form(model["read"], request.args)
+
+            if form.validate():
+                result = get_crud(tablename)["read"](*form.params)
+                message = f"{tablename} read with params: {self.data(form.data)}"
+                get_logger().info(f"API: {message}")
+                return create_response(message, 200, data=result)
+
+            else:
+                return create_response(form.errors, 400)
+
+        def update(self, tablename):
+            model = get_model(tablename)
+            form = get_form(model["update"], request.form)
+
+            if form.validate_on_submit():
+                result = get_crud(tablename)["update"](*form.params)
+                message = f"{tablename} updated with params: {self.data(request.form)}"
+                get_logger().info(f"API: {message}")
+                return create_response(message, 200, data=result)
+
+            else:
+                return create_response("Invalid query fields", 400)
+
+        def delete(self, tablename):
+            model = get_model(tablename)
+            form = get_form(model["delete"], request.form)
+
+            if form.validate():
+                result = get_crud(tablename)["delete"](*form.params)
+                message = (
+                    f"{tablename} deleted from where params: {self.data(request.form)}"
+                )
+                get_logger().info(f"API: {message}")
+                return create_response(message, 200, data=result)
+
+            else:
+                return create_response("Invalid query fields", 400)
+
+    # @app.route(
+    #     "/api/<tablename>",
+    #     methods=["POST", "GET", "PUT", "DELETE"],
+    #     endpoint=Endpoints.table_api,
+    # )
+    # def table_operation_api(tablename):
+    #     model = get_model(tablename)
+    #     operation = model[get_operation_name()]
+    #
+    #     if request.method == "GET":
+    #         request_data = request.args.to_dict()
+    #         statement = f"{tablename} read"
+    #     else:
+    #         request_data = request.form.to_dict()
+    #         statement = f"{tablename} {operation.name}"
+    #
+    #     get_logger().info(f"API: {request.method} request with data: {request_data}")
+    #
+    #     with_params = (
+    #         f'with params: ({", ".join([f"{k}={v}" for k, v in request_data.items()])})'
+    #     )
+    #     message = statement + " " + with_params
+    #
+    #     form = get_form(operation, request_data)
+    #     form.validate_on_submit
+    #     result = get_crud(tablename)[operation.name](*form.params)
+    #
+    #     response = create_response(message, 200, data=result)
+    #
+    #     get_logger().info(
+    #         f"API: {request.method} request returned with: {response.json}"
+    #     )
+    #     return response
+
+    app.add_url_rule(
         "/api/<tablename>",
-        methods=["POST", "GET", "PUT", "DELETE"],
-        endpoint=Endpoints.table_api,
+        view_func=TableAPI.as_view(Endpoints.table_api),
+        methods=["POST", "GET", "UPDATE", "DELETE"],
     )
-    def table_operation_api(tablename):
-        model = get_model(tablename)
-        operation = model[get_operation_name()]
 
-        if request.method == "GET":
-            request_data = request.args.to_dict()
-            statement = f"{tablename} read"
-        else:
-            request_data = request.form.to_dict()
-            statement = f"{tablename} {operation.name}"
-
-        with_params = (
-            f'with params: ({", ".join([f"{k}={v}" for k, v in request_data.items()])})'
-        )
-        message = statement + " " + with_params
-
-        form = get_form(operation, request_data)
-        result = get_crud(tablename)[operation.name](form.params)
-
-        return create_response(message, 200, data=result)
+    return app
 
 
 def write_message(model_name, operation_name, data):
     return f'{model_name} {operation_name}d with params: ({", ".join([f"{k}={v}" for k, v in data.items()])}) '
-
-
-class QueryString:
-    def __init__(self, string):
-        self.string = string

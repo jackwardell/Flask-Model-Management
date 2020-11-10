@@ -1,5 +1,12 @@
 {% extends 'base_table.html.jinja2' %}
 
+<div class="btn-group" role="group" aria-label="Basic example">
+    <button type="button" class="btn btn-secondary">Left</button>
+    <button type="button" class="btn btn-secondary">Middle</button>
+    <button type="button" class="btn btn-secondary">Right</button>
+</div>
+
+
 {% block form_card %}
     <form id="form">
         <div role="form" id="form-content">
@@ -8,8 +15,20 @@
             </div>
             {% for field in form.fields %}
                 <div class="form-group">
-                    {{ field.label }}:
-                    {{ field(class="form-control mb-4") }}
+                    {% if field.type == 'RadioField' %}
+                        {{ field.label }}:
+                        <div>
+                            {% for subfield in field %}
+                                <div class="form-check form-check-inline">
+                                    {{ subfield(class="form-check-input") }}
+                                    {{ subfield.label(class="form-check-label") }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ field.label }}:
+                        {{ field(class="form-control mb-4") }}
+                    {% endif %}
                 </div>
             {% endfor %}
         </div>
