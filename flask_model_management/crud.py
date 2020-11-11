@@ -1,7 +1,6 @@
 import attr
 
 from .helpers import get_logger
-from .helpers import get_model
 from flask_model_management.helpers import get_session
 
 
@@ -9,39 +8,16 @@ from flask_model_management.helpers import get_session
 class CRUDFailure(Exception):
     message = attr.ib()
     operation_name = attr.ib()
-    # model_operation = attr.ib()
-
-    # @property
-    # def model_name(self):
-    #     return self.model_operation.model.name
-
-    # @property
-    # def operation_name(self):
-    #     return self.model_operation.name
 
 
-@attr.s
-class CRUDApplicationError(Exception):
-    message = attr.ib()
-    operation_name = attr.ib()
-    # model_operation = attr.ib()
-
-    # @property
-    # def model_name(self):
-    #     return self.model_operation.model.name
-
-    # @property
-    # def operation_name(self):
-    #     return self.model_operation.name
-
-
-def get_crud(tablename):
-    model = get_model(tablename)
-    return CRUD(model)
+def get_crud():
+    return CRUDApplication(CRUD)
 
 
 @attr.s
 class CRUD:
+    """A service that accepts sqlalchemy models performs crud operations on them"""
+
     OPERATIONS = frozenset({"create", "read", "update", "delete"})
 
     model = attr.ib()

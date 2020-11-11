@@ -1,221 +1,110 @@
 {% extends 'base_table.html.jinja2' %}
 
 {% block form_card %}
-    {#    <form method="post">#}
     <div class="row">
-
-        {% if request.args.get("_model_management_operational_mode") == "single" %}
-
-            <div class="col-12">
+        <div class="col-6">
+            <div class="mb-3">
+                <h6 class="card-title text-center m-0">find these entries</h6>
+                <p class="text-muted text-center">query the table by these values to get the entries you want to update</p>
+            </div>
+            <form id="filter-form">
                 <div role="form" id="form-content">
-                    {% for field in form.fields %}
+                    {% for field in form.filter_fields %}
                         <div class="form-group">
-                            {{ field.description.key }} {{ field.label }} {{ field.description.col_type }} {{ field.description.nullable }}:
-                            {% if field.description.is_pk and request.args.get("from_table") == "True" %}
-                                {{ field(class="form-control mb-4", disabled="True") }}
+                            {% if field.type == 'RadioField' %}
+                                {{ field.label }}:
+                                <div>
+                                    {% for subfield in field %}
+                                        <div class="form-check form-check-inline">
+                                            {{ subfield(class="form-check-input") }}
+                                            {{ subfield.label(class="form-check-label") }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             {% else %}
+                                {{ field.label }}:
                                 {{ field(class="form-control mb-4") }}
                             {% endif %}
                         </div>
                     {% endfor %}
                 </div>
+            </form>
+        </div>
+        <div class="col-6">
+            <div class="mb-3">
+                <h6 class="card-title text-center m-0">change to these values</h6>
+                <p class="text-muted text-center">then update those entries with the values inputted to the fields below</p>
             </div>
-
-        {% else %}
-
-            <div class="col-6">
-                <div class="mb-3">
-                    <h6 class="card-title text-center m-0">find these entries</h6>
-                    <p class="text-muted text-center">query the table by these values to get the entries you want to update</p>
+            <form id="insert-form">
+                <div role="form" id="form-content">
+                    {% for field in form.insert_fields %}
+                        <div class="form-group">
+                            {% if field.type == 'RadioField' %}
+                                {{ field.label }}:
+                                <div>
+                                    {% for subfield in field %}
+                                        <div class="form-check form-check-inline">
+                                            {{ subfield(class="form-check-input") }}
+                                            {{ subfield.label(class="form-check-label") }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ field.label }}:
+                                {{ field(class="form-control mb-4") }}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
                 </div>
-                <form id="filter-form">
-                    <div class="form-group">
-                        {{ form.csrf_token }}
-                    </div>
-                    <div role="form" id="form-content">
-                        {% for field in form.filter_fields %}
-                            <div class="form-group">
-                                {% if field.type == 'RadioField' %}
-                                    {{ field.label }}:
-                                    <div>
-                                        {% for subfield in field %}
-                                            <div class="form-check form-check-inline">
-                                                {{ subfield(class="form-check-input") }}
-                                                {{ subfield.label(class="form-check-label") }}
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    {{ field.label }}:
-                                    {{ field(class="form-control mb-4") }}
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                        {#                        {% for field in form.filter_fields %}#}
-                        {#                            <div class="form-group">#}
-                        {#                                {{ field.description.key }} {{ field.label }} {{ field.description.col_type }} {{ field.description.nullable }}:#}
-                        {#                                {{ field(class="form-control mb-4") }}#}
-                        {#                            </div>#}
-                        {#                        {% endfor %}#}
-                    </div>
-                </form>
-            </div>
-
-            <div class="col-6">
-                <div class="mb-3">
-                    <h6 class="card-title text-center m-0">change to these values</h6>
-                    <p class="text-muted text-center">then update those entries with the values inputted to the fields below</p>
-                </div>
-                <form id="insert-form">
-                    <div class="form-group">
-                        {{ form.csrf_token }}
-                    </div>
-                    <div role="form" id="form-content">
-
-                        {% for field in form.insert_fields %}
-                            <div class="form-group">
-                                {% if field.type == 'RadioField' %}
-                                    {{ field.label }}:
-                                    <div>
-                                        {% for subfield in field %}
-                                            <div class="form-check form-check-inline">
-                                                {{ subfield(class="form-check-input") }}
-                                                {{ subfield.label(class="form-check-label") }}
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    {{ field.label }}:
-                                    {{ field(class="form-control mb-4") }}
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-
-                        {#                        {% for field in form.insert_fields %}#}
-                        {#                            <div class="form-group">#}
-                        {#                                {{ field.description.key }} {{ field.label }} {{ field.description.col_type }} {{ field.description.nullable }}:#}
-                        {#                                {{ field(class="form-control mb-4") }}#}
-                        {#                            </div>#}
-                        {#                        {% endfor %}#}
-
-                    </div>
-                </form>
-            </div>
-
-        {% endif %}
-
+            </form>
+        </div>
     </div>
-
-    {% from 'components/macros.html.jinja2' import operation_colour %}
-
     <div class="form-group text-center">
-        {% with classes = "btn btn-" + operation_colour(request.view_args['operation']) %}
-            {% with label = request.view_args['operation'] + " " + model.name %}
-                {{ form.confirm(class=classes, value=label) }}
-            {% endwith %}
-        {% endwith %}
+        {{ form.confirm(class="btn btn-warning", value="update") }}
     </div>
+{% endblock %}
 
 
+{% block scripts %}
     <script>
-        function getFormData(formId) {
-            var queryString = $("#" + formId + " :input")
+        function getFormData(formId, reset) {
+            var formData = $("#" + formId + " :input")
                 .filter(function (index, element) {
-                    return $(element).val() != '' && element.name != 'csrf_token';
+                    return $(element).val() != '';
                 })
                 .serialize();
-            $("#" + formId).trigger("reset");
-            return queryString
+            if (reset) {
+                $("#" + formId).trigger("reset");
+            }
+            return formData
         }
 
         $("#confirm").on('click', function () {
-            {#var filterForm = getFormData("filter-form")#}
-            {#var insertForm = getFormData("insert-form")#}
-            var queryString = getFormData("filter-form") + "&" + getFormData("insert-form")
-            console.log(queryString)
+            var formData = getFormData("filter-form", true) + "&" + getFormData("insert-form", true)
 
+            var success_alert = $("#success-alert")
+            var failure_alert = $("#failure-alert")
+            success_alert.hide()
+            failure_alert.hide()
 
-            $.ajax({
-                url: '{{ get_url(endpoints.table_api, tablename=model.name) }}',
-                type: 'PUT',
-                data: queryString,
-                success: function (result) {
-                    var success_alert = $("#success-alert")
-                    var failure_alert = $("#failure-alert")
-
-                    if (result.success) {
-                        success_alert.hide()
-                        failure_alert.hide()
-                        $("#success-text").text(result.message);
-                        success_alert.show();
-                    } else {
-                        success_alert.hide()
-                        failure_alert.hide()
-                        $("#failure-text").text(result.message);
-                        failure_alert.show();
+            if (confirm("Are you sure you want to update these entries?")) {
+                $.ajax({
+                    url: '{{ get_url(endpoints.table_operation_api, tablename=model.name) }}',
+                    type: 'PUT',
+                    data: formData,
+                    success: function (result) {
+                        if (result.success) {
+                            $("#success-text").text(result.message);
+                            success_alert.show();
+                        } else {
+                            $("#failure-text").text(result.message);
+                            failure_alert.show();
+                        }
                     }
-                }
-            })
-
-            {#$.put('{{ get_url(endpoints.table_api, tablename=model.name) }}', queryString, function (result) {#}
-            {#    var success_alert = $("#success-alert")#}
-            {#    var failure_alert = $("#failure-alert")#}
-            {##}
-            {#    if (result.success) {#}
-            {#        success_alert.hide()#}
-            {#        failure_alert.hide()#}
-            {#        $("#success-text").text(result.message);#}
-            {#        success_alert.show();#}
-            {#    } else {#}
-            {#        success_alert.hide()#}
-            {#        failure_alert.hide()#}
-            {#        $("#failure-text").text(result.message);#}
-            {#        failure_alert.show();#}
-            {#    }#}
-            {# });#}
-
-            {#console.log(filterForm)#}
-            {#console.log(updateForm)#}
+                })
+            }
+            return false;
         })
-
-        {#$("#confirm").on('click', function () {#}
-        {#    $.put('{{ get_url(endpoints.table_api, tablename=model.name) }}', getFormData(), function (result) {#}
-        {#        var success_alert = $("#success-alert")#}
-        {#        var failure_alert = $("#failure-alert")#}
-        {##}
-        {#        if (result.success) {#}
-        {#            success_alert.hide()#}
-        {#            failure_alert.hide()#}
-        {#            $("#success-text").text(result.message);#}
-        {#            success_alert.show();#}
-        {#        } else {#}
-        {#            success_alert.hide()#}
-        {#            failure_alert.hide()#}
-        {#            $("#failure-text").text(result.message);#}
-        {#            failure_alert.show();#}
-        {#        }#}
-        {#    });#}
-        {#    return false;#}
-        {#})
-        #}
-
-        {#$("#alerts").html(#}
-        {#    "<div class=\"alert alert-success alert-dismissible text-center fade show\" role=\"alert\">\n" +#}
-        {#    "  {{ model.name }} created " + ".\n" +#}
-        {#    "  <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">\n" +#}
-        {#    "    <span aria-hidden=\"true\">&times;</span>\n" +#}
-        {#    "  </button>\n" +#}
-        {#    "</div>"#}
-        {#)#}
-
-        {#$("#hello").on('click', function () {#}
-        {#    $.post('{{ get_url(endpoints.table_api, tablename=model.name) }}', $("#form").serialize(), function () {#}
-        {#        console.log('success')#}
-        {#    })#}
-        {# })#}
     </script>
 
-
-    {#    {% include 'components/operation_confirm_submit_modal.html.jinja2' %}#}
-    {#    </form>#}
 {% endblock %}

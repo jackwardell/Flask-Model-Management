@@ -15,62 +15,22 @@ from wtforms.fields import DateField
 from wtforms.fields import DateTimeField
 from wtforms.fields import RadioField
 
-# from . import ModelOperation
-# from . import Query
-
 THIS_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 TEMPLATES_DIR = THIS_DIR / "templates"
 
 ENDPOINT = "model_management"
 URL_PREFIX = "/model-management"
 
-# CRUD_OPERATIONS = frozenset({"create", "read", "update", "delete"})
 CRUD_OPERATIONS = ("create", "read", "update", "delete")
 
 MODEL_TEMPLATE = "model.html.jinja2"
 OPERATIONS_FOLDER = "operations/"
 TEMPLATE_SUFFIX = ".html.jinja2"
 
-FAILURE_MESSAGE = "danger"
-WARNING_MESSAGE = "warning"
-SUCCESS_MESSAGE = "success"
-INFO_MESSAGE = "primary"
-
-
-#
-# class FieldUI:
-#     def __init__(self, field):
-#         self._field = field
-#
-#     def __call__(self, *args, **kwargs):
-#         return self._field(*args, **kwargs)
-
-# def make_field(self, operation):
-#     description = FieldUI.from_column(self)
-#
-#     render_kw = {}
-#     # todo: consider using description everywhere over render_kw?
-#     if self.autoincrement is True and operation == "create":
-#         render_kw["disabled"] = "true"
-#         render_kw["placeholder"] = "AUTOINCREMENT"
-#
-#     if all(
-#         [
-#             self.required,
-#             operation == "create",
-#             "disabled" not in render_kw,
-#             not self.type.is_bool,
-#         ]
-#     ):
-#         render_kw["required"] = "true"
-#
-#     field = self.type.make_wtf_field(
-#         self.name,
-#         default=self.default,
-#         description=description,
-#         render_kw=(render_kw or None),
-#     )
-#     return field
+# FAILURE_MESSAGE = "danger"
+# WARNING_MESSAGE = "warning"
+# SUCCESS_MESSAGE = "success"
+# INFO_MESSAGE = "primary"
 
 
 def true_false_or_none(value):
@@ -86,9 +46,7 @@ def field_from_column(column):
     if column.type == int:
         field = IntegerField
     elif column.type == bool:
-        field = partial(
-            RadioField, coerce=true_false_or_none, choices=("True", "False", "None")
-        )
+        field = partial(RadioField, coerce=true_false_or_none, choices=("True", "False", "None"))
     elif column.type == float:
         field = FloatField
     elif column.type == Decimal:
@@ -155,9 +113,6 @@ class Column:
         )
         return column
 
-    # def to_dict(self):
-    #     return attr.asdict(self, recurse=True)
-
 
 @attr.s
 class Model:
@@ -167,13 +122,7 @@ class Model:
     excluded_columns = attr.ib(factory=list)
     excluded_operations = attr.ib(factory=list)
     view_decorators = attr.ib(factory=list)
-
-    def __getitem__(self, item):
-        return [op for op in self.operations if op.name == item].pop()
-
-    # @property
-    # def sqlalchemy_model(self):
-    #     return self.model
+    callbacks = attr.ib(factory=list)
 
     @property
     def name(self):
@@ -195,56 +144,21 @@ class Model:
 
         return cols
 
-    # @property
-    # def query(self):
-    #     return Query.from_sqlalchemy_model(self.model)
-
-    @classmethod
-    def from_sqlalchemy_model(cls, model, **kwargs):
-        return cls(model, **kwargs)
-
-    def make_sqlalchemy_model(self, **kwargs):
-        return self.model(**kwargs)
-
-    def decorate(self, func):
-        for decorator in self.view_decorators:
-            func = decorator(func)
-        return func
-
     @property
     def allowed_operations(self):
         allowed_operations = [
-            operation
-            for operation in CRUD_OPERATIONS
-            if operation not in self.excluded_operations
+            operation for operation in CRUD_OPERATIONS if operation not in self.excluded_operations
         ]
         return allowed_operations
 
     @property
     def operations(self):
-        operations = [
-            ModelOperation(operation, self) for operation in self.allowed_operations
-        ]
+        operations = [ModelOperation(operation, self) for operation in self.allowed_operations]
         return operations
-
-    @property
-    def endpoint(self):
-        return self.name
-
-    @property
-    def route(self):
-        return self.name
 
     # @property
     # def primary_key(self):
     #     return [c for c in self.columns if c.primary_key].pop()
-
-    # def redirect(self, blueprint):
-    #     endpoint = self.operation("read").endpoint_with_blueprint(blueprint)
-    #     return lambda: redirect(url_for(endpoint))
-
-    # def all(self):
-    #     return self.query.limit(100).all()
 
 
 @attr.s

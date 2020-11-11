@@ -62,9 +62,7 @@ class CRUDForm(FlaskForm):
                 get_logger().info(f"FORM FIELD: {k}={v}")
                 params[self.strip_prefix(k)] = v
 
-        get_logger().info(
-            f"FORM LABELLED PARAMS: '{label}' params output with: {params}"
-        )
+        get_logger().info(f"FORM LABELLED PARAMS: '{label}' params output with: {params}")
         return params
 
     def _get_labelled_fields(self, label):
@@ -80,66 +78,6 @@ class CRUDForm(FlaskForm):
         return fields
 
 
-# @property
-# def fields(self):
-#     fields = [
-#         field
-#         for field in self
-#         if field.label.text not in self.HIDDEN_FIELDS
-#            and not field.name.startswith("query_")
-#     ]
-#     return fields
-
-# def fields_to_show(self):
-#     fields = [
-#         field
-#         for field in self
-#         if field.label.text not in self.HIDDEN_FIELDS
-#            and not field.name.startswith("query_")
-#     ]
-#     return fields
-
-#
-# @property
-# def params(self):
-#     return {}
-
-# @classmethod
-# def from_dict(cls, multi_dict):
-#     return cls(**multi_dict)
-
-
-# class FormFactory:
-#     def __init__(self, model, operation):
-#         self.model = model
-#         self.operation = operation
-#
-#     def make(self, multi_dict):
-#
-#     def from_request(self, request):
-#         multi_dict = request.args if request.method == "GET" else request.form
-#         return Form(**multi_dict)
-#
-#     def make_form(self, multi_dict):
-#         return Form(**multi_dict)
-#
-#     @staticmethod
-#     def make_create_form(multi_dict):
-#         return Form(**multi_dict)
-#
-#     @staticmethod
-#     def make_read_form(multi_dict):
-#         return Form(**multi_dict)
-#
-#     @staticmethod
-#     def make_update_form(multi_dict):
-#         return Form(**multi_dict)
-#
-#     @staticmethod
-#     def make_delete_form(multi_dict):
-#         return Form(**multi_dict)
-
-
 def get_protocols(operation_name):
     if operation_name == "create":
         return ["insert"]
@@ -153,15 +91,15 @@ def get_protocols(operation_name):
         raise ValueError("must be a crud operation")
 
 
-def get_form(operation, multi_dict):
-    form = type(f"{operation.name.title()}Form", (CRUDForm,), {})
-    get_logger().info(f"FORM CREATION: {operation.name} form created")
+def get_form(model, operation, multi_dict):
+    form = type(f"{operation.title()}Form", (CRUDForm,), {})
+    get_logger().info(f"FORM CREATION: {operation} form created")
 
-    for column in operation.model.columns:
-        protocols = get_protocols(operation.name)
+    for column in model.columns:
+        protocols = get_protocols(operation)
         for protocol in protocols:
             name = protocol + "_" + column.name
             setattr(form, name, field_from_column(column))
 
     get_logger().info(f"FORM INSTANTIATION: form init called with values: {multi_dict}")
-    return form(multi_dict)
+    return form(multi_dict, csrf_enabled=False)

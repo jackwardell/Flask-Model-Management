@@ -1,12 +1,8 @@
 {% extends 'base_table.html.jinja2' %}
 
-{#{% from 'components/macros.html.jinja2' import operation_colour %}#}
 {% block form_card %}
     <form id="filter-form">
         <div role="form" id="form-content">
-            <div class="form-group">
-                {{ form.csrf_token }}
-            </div>
             {% for fields in form.fields | batch(4) %}
                 <div class="form-row d-flex justify-content-center">
                     {% for field in form.fields %}
@@ -27,31 +23,12 @@
                             {% endif %}
                         </div>
                     {% endfor %}
-
-
-                    {#                    {% for field in fields %}#}
-                    {#                        <div class="form-group col-3">#}
-                    {#                            {{ field.label(class="col-form-label") }}#}
-                    {#                            {{ field(class="form-control col-12") }}#}
-                    {#                        </div>#}
-                    {#                    {% endfor %}#}
                 </div>
             {% endfor %}
         </div>
-
-        {% from 'components/macros.html.jinja2' import operation_colour %}
-
         <div class="form-group text-center">
-            {% with classes = "btn btn-" + operation_colour(request.view_args['operation']) %}
-                {% with label = request.view_args['operation'] + " " + model.name %}
-                    {{ form.confirm(class=classes, value=label) }}
-                {% endwith %}
-            {% endwith %}
+            {{ form.confirm(class="btn btn-primary", value="read") }}
         </div>
-
-        {#        <span class="btn btn-primary" id="hello" onclick="read()">hwllo</span>#}
-        {#        {% include 'components/operation_submit_button.html.jinja2' %}#}
-
     </form>
 {% endblock %}
 
@@ -63,31 +40,10 @@
                     <thead>
                     <tr>
                         {% for col in model.columns %}
-                            <th>{% if col.primary_key %}<i data-feather="key"></i> {% endif %}{{ col.name }} [{{ col.type }}]</th>
+                            <th>{% if col.primary_key %}<i data-feather="key"></i>{% endif %}{{ col.name }} [{{ col.type }}]</th>
                         {% endfor %}
-                        {#            {% if "update" in model.allowed_operations %}#}
-                        {#                <th class="text-center">update</th>#}
-                        {#            {% endif %}#}
-                        {#            {% if "delete" in model.allowed_operations %}#}
-                        {#                <th class="text-center">delete</th>#}
-                        {#            {% endif %}#}
                     </tr>
                     </thead>
-                    {#            <tbody>#}
-                    {#            {% for item in data %}#}
-                    {#                <tr>#}
-                    {#                    {% for col in operation.model.columns %}#}
-                    {#                        <td>{{ item[col.name] }}</td>#}
-                    {#                    {% endfor %}#}
-                    {#                    {% if "update" in operation.model.operations %}#}
-                    {#                        <td class="text-center"><a href="{{ get_url(operation.model.endpoint, operation="update", from_table=True, **get_params(item)) }}" class="btn btn-warning">Update</a></td>#}
-                    {#                    {% endif %}#}
-                    {#                    {% if "delete" in operation.model.operations %}#}
-                    {#                        <td class="text-center"><a href="{{ get_url(operation.model.endpoint, operation="delete", from_table=True, **get_params(item)) }}" class="btn btn-danger">Delete</a></td>#}
-                    {#                    {% endif %}#}
-                    {#                </tr>#}
-                    {#            {% endfor %}#}
-                    {#            </tbody>#}
                 </table>
             </div>
         </div>
@@ -98,82 +54,53 @@
     <script>
         var table = $("#table").DataTable({
             "ajax": {
-                url: "{{ get_url(endpoints.table_api, tablename=model.name, csrf_token=form.csrf_token()) }}",
+                url: "{{ get_url(endpoints.table_operation_api, tablename=model.name) }}",
                 type: "GET"
             },
             "columns": [
                 {% for column in model.columns %}
                     {"data": "{{ column.name }}"},
                 {% endfor %}
-
-                {#                {% if "update" in model.allowed_operations %}#}
-                {#                    {#}
-                {#                        "data": "update",#}
-                {#                        "defaultContent": "<a class=\"btn btn-warning\" href=\"{{ url_for(request.blueprint + "." + endpoints.table_operation_view, tablename=model.name, operation='update') }}\" >update</a>"#}
-                {#                    },#}
-                {#                {% endif %}#}
-                {##}
-                {#                {% if "delete" in model.allowed_operations %}#}
-                {#                    {#}
-                {#                        "data": "delete",#}
-                {#                        "defaultContent": "<span class=\"btn btn-danger\">delete</span>"#}
-                {#                    },#}
-                {#                {% endif %}#}
             ],
-            {#"columnDefs": [{#}
-            {#    "targets": [-2, -1],#}
-            {#    "data": null,#}
-            {#    "defaultContent": "<span class=\"btn btn-primary\">Click!</span>"#}
-            {# }]#}
         })
 
+        function getFormData(formId, reset) {
+            var formData = $("#" + formId + " :input")
+                .filter(function (index, element) {
+                    return $(element).val() != '';
+                })
+                .serialize();
+            if (reset) {
+                $("#" + formId).trigger("reset");
+            }
+            return formData
+        }
 
         $("#confirm").on('click', function () {
-            function getFormData(formId) {
-                var formData = $("#" + formId + " :input")
-                    .filter(function (index, element) {
-                        return $(element).val() != '';
-                    })
-                    .serialize();
-                {#$("#" + formId).trigger("reset");#}
-                return formData
-            }
+            var formData = getFormData('filter-form', false)
 
-            var formData = getFormData('filter-form')
-            console.log(formData)
+            var success_alert = $("#success-alert")
+            var failure_alert = $("#failure-alert")
+            success_alert.hide()
+            failure_alert.hide()
 
-            $.get('{{ get_url(endpoints.table_api, tablename=model.name) }}', formData, function () {
-            }).done(function (result) {
-                table.clear().draw();
-                {#$.each(result, function (i, v) {#}
-                {#console.log(new URLSearchParams(v).toString())#}
-                {# })#}
-                {#result.each(function (i, obj) {#}
-                {#    console.log(i.serialize())#}
-                {# } )#}
-
-                table.rows.add(result.data).draw();
-            });
-
-            return false
+            $.ajax({
+                url: '{{ get_url(endpoints.table_operation_api, tablename=model.name) }}',
+                type: 'GET',
+                data: formData,
+                success: function (result) {
+                    if (result.success) {
+                        $("#success-text").text(result.message);
+                        success_alert.show();
+                        table.clear().draw();
+                        table.rows.add(result.data).draw();
+                    } else {
+                        $("#failure-text").text(result.message);
+                        failure_alert.show();
+                    }
+                }
+            })
+            return false;
         })
-
-        {#function read() {#}
-        {##}
-        {#   #}
-        {# }#}
-
-
-        {#$(document).ready(function () {#}
-        {#    $('#table').DataTable({#}
-        {#        "ajax": {#}
-        {#            url: "{{ get_url(endpoints.table_api, tablename=model.name) }}",#}
-        {#            type: "GET"#}
-        {#        },#}
-        {#        "columns": [#}
-        {#                {% for column in model.columns %}{"data": "{{ column.name }}"},{% endfor %}#}
-        {#        ]#}
-        {#    });#}
-        {# });#}
     </script>
 {% endblock %}

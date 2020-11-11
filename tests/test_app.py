@@ -1,8 +1,8 @@
 import pytest
 from flask import Flask
 
-from flask_model_management import CRUD_OPERATIONS
-from flask_model_management import ModelManagement
+from flask_model_management.domain import CRUD_OPERATIONS
+from flask_model_management.manager import ModelManager as ModelManagement
 from tests.models import Address
 from tests.models import db
 from tests.models import populate

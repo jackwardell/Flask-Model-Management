@@ -3,10 +3,9 @@ from pathlib import Path
 
 import attr
 from flask import Blueprint
-from flask import request
 
 from .domain import Model
-from .helpers import get_model_endpoint
+
 
 ENDPOINT = "model_management"
 URL_PREFIX = "/model-management"
@@ -25,6 +24,7 @@ FAILURE_MESSAGE = "danger"
 WARNING_MESSAGE = "warning"
 SUCCESS_MESSAGE = "success"
 INFO_MESSAGE = "primary"
+EXTENSION = "model_management"
 
 
 @attr.s
@@ -45,29 +45,6 @@ class ModelManager:
     # set db object
     db = attr.ib(default=None)
 
-    # if app:
-    #     self.init_app(app, db)
-
-    # self.blueprint = self.create_blueprint()
-
-    # def get_url(self, endpoint, **params):
-    #     operation = params.pop("operation", "")
-    #     extension = "_" + operation if operation else ""
-    #     location = self.name + "." + endpoint + extension
-    #     return url_for(location, **params)
-
-    # def is_url(self, endpoint):
-    #     return self.name + "." + endpoint == request.endpoint
-
-    def is_model(self, model):
-        blueprint, endpoint = request.endpoint.split(".")
-        model_endpoint = get_model_endpoint(endpoint)
-        return self.name == blueprint and model_endpoint == model.endpoint
-
-    def is_model_operation(self, operation):
-        blueprint, endpoint = request.endpoint.split(".")
-        return self.name == blueprint and endpoint == operation.endpoint
-
     def register_model(
         self,
         model,
@@ -81,7 +58,7 @@ class ModelManager:
             "view_decorators": decorators or [],
         }
 
-        model = Model.from_sqlalchemy_model(model, **params)
+        model = Model(model, **params)
 
         self.models[model.name] = model
 
@@ -93,7 +70,7 @@ class ModelManager:
 
         blueprint = apply_to_app(self.create_blueprint())
         app.register_blueprint(blueprint)
-        app.extensions["model_management"] = self
+        app.extensions[EXTENSION] = self
 
     def create_blueprint(self):
         blueprint = Blueprint(
