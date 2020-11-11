@@ -7,6 +7,8 @@ from flask import request
 from flask import url_for
 from flask.views import MethodView
 
+from .crud import CRUD
+from .crud import CRUDApplication
 from .crud import CRUDFailure
 from .crud import get_crud
 from .form import get_form
@@ -108,35 +110,20 @@ def parse_result(result):
 
 
 def apply_to_app(app):
+    crud = CRUDApplication(CRUD)
+
     @app.context_processor
     def processors():
         return {
             "models": get_models(),
             "get_url": get_url,
-            # "is_url": is_url,
-            # "is_model_operation": is_model_operation,
-            # "is_model": is_model,
-            # "is_model": lambda *args, **kwargs: "",
-            # "get_params": get_params,
             "model_manager": get_model_manager(),
             "endpoints": Endpoints,
         }
 
     @app.errorhandler(CRUDFailure)
     def handle_crud_failure(crud_failure):
-        # flash("hello")
-        # location = get_model_manager().name + "." + Endpoints.table_operation_view
-
-        # url = get_model_operation_url(crud_failure.model, crud_failure.operation)
-        # return redirect(url_for(location, tablename=crud_failure.model_name, operation=crud_failure.operation_name))
-        # return redirect("/hello")
         return create_response(crud_failure.message, 500)
-
-    # @app.url_value_preprocessor
-    # def add_model_from_tablename(_, values):
-    #     tablename = values.get("tablename")
-    #     if tablename:
-    #         g.model = get_model_from_tablename(values["tablename"])
 
     @app.route("/", methods=["GET"], endpoint=Endpoints.index_view)
     def index():
@@ -168,9 +155,11 @@ def apply_to_app(app):
             form = get_form(model["create"], request.form)
 
             if form.validate_on_submit():
-                result = get_crud(tablename)["create"](*form.params)
+
+                result = crud.create_single(model, *form.params)
+
+                # result = get_crud(tablename)["create"](*form.params)
                 message = f"{tablename} created with params: {self.data(request.form)}"
-                get_logger().info(f"API: {message}")
                 return create_response(message, 200, data=result)
 
             else:

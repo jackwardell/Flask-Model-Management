@@ -8,15 +8,31 @@ from flask_model_management.helpers import get_session
 @attr.s
 class CRUDFailure(Exception):
     message = attr.ib()
-    model_operation = attr.ib()
+    operation_name = attr.ib()
+    # model_operation = attr.ib()
 
-    @property
-    def model_name(self):
-        return self.model_operation.model.name
+    # @property
+    # def model_name(self):
+    #     return self.model_operation.model.name
 
-    @property
-    def operation_name(self):
-        return self.model_operation.name
+    # @property
+    # def operation_name(self):
+    #     return self.model_operation.name
+
+
+@attr.s
+class CRUDApplicationError(Exception):
+    message = attr.ib()
+    operation_name = attr.ib()
+    # model_operation = attr.ib()
+
+    # @property
+    # def model_name(self):
+    #     return self.model_operation.model.name
+
+    # @property
+    # def operation_name(self):
+    #     return self.model_operation.name
 
 
 def get_crud(tablename):
@@ -30,19 +46,8 @@ class CRUD:
 
     model = attr.ib()
 
-    @property
-    def sqlalchemy_model(self):
-        return self.model.model
-
-    def __getitem__(self, item):
-        return getattr(self, item)
-
-    @staticmethod
-    def parse_entry(row):
-        return {k: v for k, v in row.__dict__.items() if k != "_sa_instance_state"}
-
     def get_entries(self, session, filter_by: dict):
-        query = session.query(self.sqlalchemy_model)
+        query = session.query(self.model)
         if filter_by:
             for k, v in filter_by.items():
                 query = query.filter_by(**{k: v})
@@ -50,77 +55,106 @@ class CRUD:
         return query.all()
 
     def create(self, insert: dict):
-        get_logger().info(
-            f"CRUD: creating entry in {self.model.name} with params: {insert}"
-        )
-
         session = get_session()
 
-        model = self.sqlalchemy_model(**insert)
-        session.add(model)
+        entry = self.model(**insert)
+        session.add(entry)
         try:
             session.commit()
         except Exception as e:
             session.rollback()
-            raise CRUDFailure(str(e), self.model["create"]) from e
+            raise CRUDFailure(str(e), "create") from e
 
-        session.refresh(model)
-        result = self.parse_entry(model)
-        return result
+        session.refresh(entry)
+        return entry
 
     def read(self, filter_by: dict) -> list:
-        get_logger().info(
-            f"CRUD: reading entries from {self.model.name} with params: {filter_by}"
-        )
-
         session = get_session()
-        entries = self.get_entries(session, filter_by)
 
         try:
-            result = [self.parse_entry(e) for e in entries]
+            result = self.get_entries(session, filter_by)
         except Exception as e:
             session.rollback()
-            raise CRUDFailure(str(e), self.model["read"]) from e
+            raise CRUDFailure(str(e), "read") from e
 
         return result
 
     def update(self, filter_by: dict, insert: dict) -> list:
-        get_logger().info(
-            f"CRUD: updating entries from {self.model.name} with params: {filter_by} to {insert}"
-        )
-
         session = get_session()
-        entries = self.get_entries(session, filter_by)
 
+        entries = self.get_entries(session, filter_by)
         for entry in entries:
             for k, v in insert.items():
                 setattr(entry, k, v)
         try:
             session.commit()
-            result = [self.parse_entry(e) for e in entries]
         except Exception as e:
             session.rollback()
-            raise CRUDFailure(str(e), self.model["update"]) from e
+            raise CRUDFailure(str(e), "update") from e
 
-        return result
+        return entries
 
     def delete(self, filter_by) -> list:
-        get_logger().info(
-            f"CRUD: deleting entries from {self.model.name} with params: {filter_by}"
-        )
-
         session = get_session()
+
         entries = self.get_entries(session, filter_by)
-        print(f"ENTRIES IS: {entries}")
         if entries:
             for entry in entries:
                 session.delete(entry)
 
         try:
-            result = [self.parse_entry(e) for e in entries]
             session.commit()
         except Exception as e:
             session.rollback()
-            raise CRUDFailure(str(e), self.model["delete"]) from e
+            raise CRUDFailure(str(e), "delete") from e
 
+        return entries
+
+
+@attr.s
+class CRUDApplication:
+    crud = attr.ib()
+
+    @staticmethod
+    def parse_entry(row):
+        return {k: v for k, v in row.__dict__.items() if k != "_sa_instance_state"}
+
+    def create_single(self, model, insert):
+        get_logger().info(f"CRUD APP CREATE: insert: {insert}")
+        entry = self.crud(model.model).create(insert)
+        result = self.parse_entry(entry)
+        get_logger().info(f"CRUD APP CREATE: data output: {result}")
+        return result
+
+    def create_bulk(self):
+        raise NotImplementedError()
+
+    def read_single(self):
+        raise NotImplementedError()
+
+    def read_bulk(self, model, filter_by):
+        get_logger().info(f"CRUD APP READ: filter: {filter_by}")
+        entries = self.crud(model.model).read(filter_by)
+        result = [self.parse_entry(e) for e in entries]
+        get_logger().info(f"CRUD APP READ: data output: {result}")
+        return result
+
+    def update_single(self):
+        raise NotImplementedError()
+
+    def update_bulk(self, model, filter_by, insert):
+        get_logger().info(f"CRUD APP UPDATE: filter: {filter_by}, insert: {insert}")
+        entries = self.crud(model.model).update(filter_by, insert)
+        result = [self.parse_entry(e) for e in entries]
+        get_logger().info(f"CRUD APP UPDATE: data output: {result}")
+        return result
+
+    def delete_single(self):
+        raise NotImplementedError()
+
+    def delete_bulk(self, model, filter_by):
+        get_logger().info(f"CRUD APP UPDATE: filter: {filter_by}")
+        entries = self.crud(model.model).delete(filter_by)
+        result = [self.parse_entry(e) for e in entries]
+        get_logger().info(f"CRUD APP UPDATE: data output: {result}")
         return result

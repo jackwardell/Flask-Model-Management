@@ -31,19 +31,18 @@
                     {% endif %}
                 </div>
             {% endfor %}
-        </div>
 
-        {% from 'components/macros.html.jinja2' import operation_colour %}
+            {% from 'components/macros.html.jinja2' import operation_colour %}
 
-        <div class="form-group text-center">
-            {% with classes = "btn btn-" + operation_colour(request.view_args['operation']) %}
-                {% with label = request.view_args['operation'] + " " + model.name %}
-                    {{ form.confirm(class=classes, value=label) }}
+            <div class="form-group text-center">
+                {% with classes = "btn btn-" + operation_colour(request.view_args['operation']) %}
+                    {% with label = request.view_args['operation'] + " " + model.name %}
+                        {{ form.confirm(class=classes, value=label) }}
+                    {% endwith %}
                 {% endwith %}
-            {% endwith %}
-        </div>
+            </div>
 
-        {#        <span class="btn btn-primary" id="hello" onclick="create(); return false;">hwllo</span>#}
+            {#        <span class="btn btn-primary" id="hello" onclick="create(); return false;">hwllo</span>#}
 
         <script>
             function get_form_data() {

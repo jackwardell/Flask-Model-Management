@@ -171,9 +171,9 @@ class Model:
     def __getitem__(self, item):
         return [op for op in self.operations if op.name == item].pop()
 
-    @property
-    def sqlalchemy_model(self):
-        return self.model
+    # @property
+    # def sqlalchemy_model(self):
+    #     return self.model
 
     @property
     def name(self):
