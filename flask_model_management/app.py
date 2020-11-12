@@ -85,7 +85,6 @@ def apply_to_app(app):
     @app.context_processor
     def processors():
         rv = {
-            "models": lambda: get_model_manager().models,
             "get_url": get_url,
             "model_manager": get_model_manager(),
             "endpoints": Endpoints,

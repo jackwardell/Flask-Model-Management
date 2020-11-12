@@ -1,5 +1,4 @@
 {% from 'components/macros.html.jinja2' import operation_colour %}
-{#{% from 'components/macros.html.jinja2' import get_url %}#}
 {% from 'components/macros.html.jinja2' import get_operation_header %}
 
 <!DOCTYPE html>
@@ -73,7 +72,7 @@
                     {% if "tablename" in request.view_args %}
                         <h1>{{ request.view_args['tablename'] }}</h1>
                     {% else %}
-                        <h1>homej</h1>
+                        <h1>home</h1>
                     {% endif %}
                 {% endblock %}
             </div>
@@ -90,36 +89,15 @@
                             <li class="breadcrumb-item active"><a href="{{ get_url(endpoints.table_view, tablename=model.name) }}">{{ model.name }}</a></li>
                             <li class="breadcrumb-item">{{ request.view_args['operation'] }}</li>
                         {% endif %}
-
-                        {#                            {% if "operation" in request.view_args %}#}
-                        {#                                <li class="breadcrumb-item active"><a href="{{ get_url(endpoints.table_view) }}">{{ model.name }}</a></li>#}
-                        {#                                <li class="breadcrumb-item active">{{ operation }}</li>#}
-                        {#                            {% else %}#}
-                        {#                                <li class="breadcrumb-item active"><a href="{{ get_url(endpoints.table_view) }}">{{ model.name }}</a></li>#}
-                        {#                                <li class="breadcrumb-item active">{{ operation }}</li>#}
-                        {#                            {% endif %}#}
-                        {##}
-                        {#                            <li class="breadcrumb-item {% if "operation" in request.view_args %}active{% endif %}">{% if operation %}<a href="{{ get_url(operation.model.endpoint) }}">{% endif %}{{ operation.model.name }}{% if operation %}</a>{% endif %}</li>#}
-                        {#                            {% if operation %}#}
-                        {#                                <li class="breadcrumb-item active">{{ operation }}</li>#}
-                        {#                            {% endif %}#}
                     </ol>
                 </nav>
             </div>
-
-            {#            {% if "tablename" in request.view_args %}#}
-            {#                <div class="d-flex justify-content-between pb-3 mb-3 border-bottom">#}
-            {#                    {% for operation in model.operations %}#}
-            {#                        <a href="{{ get_url(endpoints.table_operation_view, tablename=model.name, operation=operation.name) }}" class="btn btn-{{ operation_colour(operation.name) }}" role="button" style="width: 100px">{{ operation.name | title }}</a>#}
-            {#                    {% endfor %}#}
-            {#                </div>#}
-            {#            {% endif %}#}
-
             {% block main %}
             {% endblock %}
         </main>
     </div>
 </div>
+
 {% block scripts %}
 {% endblock %}
 

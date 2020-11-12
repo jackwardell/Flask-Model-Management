@@ -1,51 +1,30 @@
 {% extends 'base_table.html.jinja2' %}
 
-{% from 'components/macros.html.jinja2' import operation_colour %}
-
 {% block form_card %}
-{#    <div class="mb-3">#}
-{#        <h5 class="card-title">tablename: </h5>#}
-{#        <div class="list-group">#}
-{#            <div class="list-group-item">#}
-{#                <h5 class="mb-1 mr-2">{{ request.view_args['tablename'] }}</h5>#}
-{#            </div>#}
-{#        </div>#}
-{#    </div>#}
-
-    <div>
-        <h5 class="card-title">columns:</h5>
-        <div class="list-group">
-            {% for column in model.columns %}
-                <div class="list-group-item flex-column align-items-start">
-                    <div class="d-flex w-100 justify-content-start">
-                        <h5 class="mb-1 mr-2">{{ column.name }}: [{{ column.type }}]</h5>
-                        {% if column.is_key %}
-                            <i data-feather="key"></i>
-                            <small>{% if column.primary_key %}primary key{% elif column.foreign_key %}foreign key{% endif %}</small>
-                        {% endif %}
+    <ul class="list-group list-group-flush list-group-no-gutters">
+        <li class="list-group-item py-3">
+            <h5 class="modal-title">columns:</h5>
+        </li>
+        {% for column in model.columns %}
+            <li class="list-group-item py-3">
+                <div class="media">
+                    <div class="mt-1 mr-3">
+                        <i data-feather="columns"></i>
                     </div>
-                    <p>{% if column.required %}<span class="text-danger">REQUIRED (NOT NULLABLE)</span>{% else %}<span class="text-primary">NULLABLE</span>{% endif %}</p>
-                    {% if column.default %}
-                        <p class="m-0">default: {{ column.default }}</p>
-                    {% else %}
-                        <p class="m-0">No default</p>
-                    {% endif %}
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div class="mt-5">
-        <h5 class="card-title">allowed operations:</h5>
-        <div class="list-group">
-            {% for operation in model.operations %}
-                <div class="list-group-item flex-column align-items-start">
-                    <div class="d-flex w-100 justify-content-start">
-                        <h5 class="mb-1 mr-2"><a class="btn btn-{{ operation_colour(operation.name) }}" type="button" href="{{ get_url(endpoints.table_operation_view, tablename=model.name, operation=operation.name) }}">{{ operation.name }} {{ model.name }}</a></h5>
+                    <div class="media-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h5 class="mb-0">{{ column.name }}</h5>
+                                <small>{% if column.primary_key %}<i data-feather="key"></i> primary key{% elif column.foreign_key %}<i data-feather="key"></i> foreign key{% endif %}</small>
+                                <span class="d-block font-size-sm">type: {{ column.type }}</span>
+                                <span class="d-block font-size-sm">nullable: {% if column.required %}False{% else %}True{% endif %}</span>
+                                <span class="d-block font-size-sm">default: {% if column.default %} {{ column.default }} {% else %} No default {% endif %}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            {% endfor %}
-        </div>
-    </div>
+            </li>
+        {% endfor %}
+    </ul>
 
 {% endblock %}

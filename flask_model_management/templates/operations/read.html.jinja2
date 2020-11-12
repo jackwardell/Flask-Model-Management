@@ -42,6 +42,7 @@
                         {% for col in model.columns %}
                             <th>{% if col.primary_key %}<i data-feather="key"></i>{% endif %}{{ col.name }} [{{ col.type }}]</th>
                         {% endfor %}
+                        <th>actions</th>
                     </tr>
                     </thead>
                 </table>
@@ -61,7 +62,18 @@
                 {% for column in model.columns %}
                     {"data": "{{ column.name }}"},
                 {% endfor %}
+                {"data": "actions"}
             ],
+            "columnDefs": [
+                {
+                    "render": function (data, type, row) {
+                        console.log(row)
+                        return row;
+                    },
+                    "targets": -1
+                },
+                {#{"visible": false, "targets": [3]}#}
+            ]
         })
 
         function getFormData(formId, reset) {

@@ -1,5 +1,48 @@
 {% extends 'base.html.jinja2' %}
 
 {% block main %}
+    {#    <div class="container-fluid p-0">#}
+    {#        <div class="row">#}
+    <div class="card">
+        <div class="text-center pt-3 border-bottom">
+            <div class="h5">models under management</div>
+            <p class="text-muted">these are the models that have been registered</p>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush list-group-no-gutters">
+                <li class="list-group-item py-3">
+                    <h5 class="modal-title">models:</h5>
+                </li>
+                {% for model_name, model in model_manager.models.items() %}
+                    <li class="list-group-item py-3">
+                        <div class="media">
+                            <div class="mt-1 mr-3">
+                                <i data-feather="database"></i>
+                            </div>
+                            <div class="media-body">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <h5 class="mb-0">{{ model_name }}</h5>
+                                    </div>
+                                    <div class="col-auto">
+                                        <a class="btn btn-sm btn-primary" href="{{ get_url(endpoints.table_view, tablename=model.name) }}">View <i data-feather="external-link"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {#        </div>#}
+    {#        </div>#}
+    {#        <div class="col-2 flex-fill ">#}
+    {#        <div class="card">#}
+    {#            <div class="card-body"></div>#}
+    {#            hello#}
+    {#        </div>#}
+    {#        </div>#}
+    {#    </div>#}
 
 {% endblock %}
