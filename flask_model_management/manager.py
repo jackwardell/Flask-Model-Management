@@ -6,7 +6,6 @@ from flask import Blueprint
 
 from .domain import Model
 
-
 ENDPOINT = "model_management"
 URL_PREFIX = "/model-management"
 APP_NAME = "model_management"
@@ -25,6 +24,14 @@ WARNING_MESSAGE = "warning"
 SUCCESS_MESSAGE = "success"
 INFO_MESSAGE = "primary"
 EXTENSION = "model_management"
+
+
+# def get_logger():
+#     return type("logger", (), {"info": lambda *args: print(*args)})
+#
+#
+# def get_session():
+#     return current_app.extensions["model_management"].db.session
 
 
 @attr.s

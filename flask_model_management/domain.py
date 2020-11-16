@@ -27,16 +27,11 @@ MODEL_TEMPLATE = "model.html.jinja2"
 OPERATIONS_FOLDER = "operations/"
 TEMPLATE_SUFFIX = ".html.jinja2"
 
-# FAILURE_MESSAGE = "danger"
-# WARNING_MESSAGE = "warning"
-# SUCCESS_MESSAGE = "success"
-# INFO_MESSAGE = "primary"
-
 
 def true_false_or_none(value):
-    if value == "True":
+    if value.lower() == "true":
         return True
-    elif value == "False":
+    elif value.lower() == "false":
         return False
     else:
         return None
@@ -46,7 +41,11 @@ def field_from_column(column):
     if column.type == int:
         field = IntegerField
     elif column.type == bool:
-        field = partial(RadioField, coerce=true_false_or_none, choices=("True", "False", "None"))
+        field = partial(
+            RadioField,
+            coerce=true_false_or_none,
+            choices=(("true", "True"), ("false", "False"), ("none", "None")),
+        )
     elif column.type == float:
         field = FloatField
     elif column.type == Decimal:

@@ -32,6 +32,7 @@ class TableOperationAPI(MethodView):
     def post(tablename):
         model = get_model(tablename)
         form = get_form(model, "create", request.form)
+
         if form.validate_on_submit():
             data = get_crud().create_single(model, insert=form.insert_params)
             return jsonify(message=f"{tablename} created", success=True, data=data)
@@ -42,6 +43,7 @@ class TableOperationAPI(MethodView):
     def get(tablename):
         model = get_model(tablename)
         form = get_form(model, "read", request.args)
+
         if form.validate():
             data = get_crud().read_bulk(model, filter_by=form.filter_params)
             return jsonify(message=f"{tablename} read", success=True, data=data)
@@ -52,6 +54,7 @@ class TableOperationAPI(MethodView):
     def put(tablename):
         model = get_model(tablename)
         form = get_form(model, "update", request.form)
+
         if form.validate_on_submit():
             data = get_crud().update_bulk(
                 model, filter_by=form.filter_params, insert=form.insert_params

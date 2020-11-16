@@ -1,4 +1,5 @@
 {% extends 'base_table.html.jinja2' %}
+{% from 'components/macros.html.jinja2' import get_icon %}
 
 {% block form_card %}
     <form id="filter-form">
@@ -67,8 +68,13 @@
             "columnDefs": [
                 {
                     "render": function (data, type, row) {
-                        console.log(row)
-                        return row;
+                        var url = "{{ get_url(endpoints.table_operation_view, tablename=model.name, operation='update') }}?"
+                        for (const key in row) {
+                            url += "filter_" + key + "=" + row[key] + "&"
+                        }
+                        var updateButton = "<a class='btn btn-primary' href='" + url + "'><i data-feather='edit'></i>d</a>"
+                        return updateButton
+                        {#return new URLSearchParams(row);#}
                     },
                     "targets": -1
                 },
