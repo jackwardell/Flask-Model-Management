@@ -68,18 +68,23 @@
             "columnDefs": [
                 {
                     "render": function (data, type, row) {
-                        var url = "{{ get_url(endpoints.table_operation_view, tablename=model.name, operation='update') }}?"
+                        var updateUrl = "{{ get_url(endpoints.table_operation_view, tablename=model.name, operation='update') }}?";
+                        var deleteUrl = "{{ get_url(endpoints.table_operation_view, tablename=model.name, operation='delete') }}?";
+                        var queryString = "";
                         for (const key in row) {
-                            url += "filter_" + key + "=" + row[key] + "&"
+                            queryString += "filter_" + key + "=" + row[key] + "&"
                         }
-                        var updateButton = "<a class='btn btn-primary' href='" + url + "'><i data-feather='edit'></i>d</a>"
-                        return updateButton
-                        {#return new URLSearchParams(row);#}
+                        var updateButton = "<a class='btn btn-warning' href='" + updateUrl + queryString + "'><i data-feather='share'></i>update</a>";
+                        var deleteButton = "<a class='btn btn-danger' href='" + deleteUrl + queryString + "'><i data-feather='share'></i>delete</a>";
+                        var result = "<div class='d-flex justify-content-around'>" + updateButton + deleteButton + "</div>"
+                        return result
                     },
                     "targets": -1
                 },
-                {#{"visible": false, "targets": [3]}#}
-            ]
+            ],
+            "createdRow": function (row, data, index) {
+                console.log(row, data, index)
+            }
         })
 
         function getFormData(formId, reset) {
