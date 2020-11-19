@@ -4,21 +4,57 @@ A Flask extension for managing Flask-SQLAlchemy models
 # Status: In Alpha Development
 BE WARNED: INSTALLING CRUD APPLICATIONS INTO PRODUCTION SERVERS ALLOWS USERS TO PERFORM POTENTIALLY IRREVERSIBLE DATA OPERATIONS
 
-# Install and run example locally
-* Clone:
+# Install
+* pip install:
 ```
-git clone https://github.com/jackwardell/Flask-Model-Management.git
+pip install flask_model_management
 ```
-* Move into directory:
+
+# Use
+* an example of how to use without app factory might look something like:
 ```
-cd Flask-Model-Management
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_model_management import ModelManager
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+db = SQLAlchemy(app)
+model_manager = ModelManager(app, db)
+
+# showing model declaration for the example
+class User(db.Model):
+    __tablename__ = "user"
+
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    username = Column(String)
+
+model_manager.register_model(User)
 ```
-* Install locally (NB: better to do in a virtual env):
+
+
+* with app factory:
 ```
-&& pip3 install -e .
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_model_management import ModelManager
+
+db = SQLAlchemy()
+
+# showing model declaration for the example
+class User(db.Model):
+    __tablename__ = "user"
+
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    username = Column(String, nullable=False)
+
+model_manager = ModelManager()
+
+def create_app():
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+    db.init_app(app)
+    model_manager.init_app(app, db)
+
+    model_manager.register_model(User, nullable=False)
 ```
-* Run Flask:
-```
-FLASK_ENV=development FLASK_APP=app flask run
-```
-* Alter app factory in `app.py` and models in `tests/models.py`

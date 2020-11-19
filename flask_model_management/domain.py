@@ -18,14 +18,7 @@ from wtforms.fields import RadioField
 THIS_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 TEMPLATES_DIR = THIS_DIR / "templates"
 
-ENDPOINT = "model_management"
-URL_PREFIX = "/model-management"
-
 CRUD_OPERATIONS = ("create", "read", "update", "delete")
-
-MODEL_TEMPLATE = "model.html.jinja2"
-OPERATIONS_FOLDER = "operations/"
-TEMPLATE_SUFFIX = ".html.jinja2"
 
 
 def true_false_or_none(value):
@@ -55,6 +48,7 @@ def field_from_column(column):
     elif column.type == date:
         field = DateField
     else:
+        # stops '' being passed
         field = partial(StringField, filters=[lambda x: x or None])
     return field(column.name)
 

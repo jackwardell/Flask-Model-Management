@@ -1,56 +1,38 @@
 import os
 from pathlib import Path
 
-import attr
 from flask import Blueprint
+from flask import current_app
 
 from .domain import Model
 
-ENDPOINT = "model_management"
 URL_PREFIX = "/model-management"
 APP_NAME = "model_management"
 
 THIS_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 TEMPLATES_DIR = THIS_DIR / "templates"
-
-CRUD_OPERATIONS = frozenset({"create", "read", "update", "delete"})
-
-MODEL_TEMPLATE = "model.html.jinja2"
-OPERATIONS_FOLDER = "operations/"
-TEMPLATE_SUFFIX = ".html.jinja2"
-
-FAILURE_MESSAGE = "danger"
-WARNING_MESSAGE = "warning"
-SUCCESS_MESSAGE = "success"
-INFO_MESSAGE = "primary"
 EXTENSION = "model_management"
 
 
-# def get_logger():
-#     return type("logger", (), {"info": lambda *args: print(*args)})
-#
-#
-# def get_session():
-#     return current_app.extensions["model_management"].db.session
+def get_model_manager():
+    return current_app.extensions["model_management"]
 
 
-@attr.s
 class ModelManager:
-    # set endpoint
-    # default is `model_management`
-    name = attr.ib(default=APP_NAME)
+    def __init__(self, name=None, url_prefix=None, db=None):
+        # set endpoint
+        # default is `model_management`
+        self.name = name or APP_NAME
 
-    # endpoint = attr.ib(default=ENDPOINT)
+        # set url_prefix
+        # default is `/model-management`
+        self.url_prefix = url_prefix or URL_PREFIX
 
-    # set url_prefix
-    # default is `/model-management`
-    url_prefix = attr.ib(default=URL_PREFIX)
+        # set location for models to be stored
+        self.models = {}
 
-    # set location for models to be stored
-    models = attr.ib(factory=dict)
-
-    # set db object
-    db = attr.ib(default=None)
+        # set db object
+        self.db = db
 
     def register_model(
         self,
@@ -73,11 +55,21 @@ class ModelManager:
         if db:
             self.db = db
 
+        assert self.db, (
+            "You must pass a flask_sqlalchemy.SQLAlchemy (db) object to either "
+            "__init__ or init_app"
+        )
+
         from .app import apply_to_app
 
         blueprint = apply_to_app(self.create_blueprint())
         app.register_blueprint(blueprint)
         app.extensions[EXTENSION] = self
+
+    def setup_app(self, app):
+        blueprint = self.create_blueprint()
+        blueprint.context_processor()
+        app.register_blueprint(blueprint)
 
     def create_blueprint(self):
         blueprint = Blueprint(
