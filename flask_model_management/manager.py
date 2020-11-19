@@ -52,11 +52,11 @@ class ModelManager:
         self.db = db
 
     def register_model(
-            self,
-            model,
-            excluded_columns: list = None,
-            excluded_operations: list = None,
-            decorators: list = None,
+        self,
+        model,
+        excluded_columns: list = None,
+        excluded_operations: list = None,
+        decorators: list = None,
     ):
         params = {
             "excluded_columns": excluded_columns or [],
@@ -119,9 +119,7 @@ class ModelManager:
                 data = get_crud().create_single(model, insert=form.insert_params)
                 return jsonify(message=f"{tablename} created", success=True, data=data)
             else:
-                return jsonify(
-                    message=f"Invalid query fields: {form.errors}", success=False
-                )
+                return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
 
         @blueprint.route("/api/<tablename>", methods=["GET"])
         def read(tablename):
@@ -131,9 +129,7 @@ class ModelManager:
                 data = get_crud().read_bulk(model, filter_by=form.filter_params)
                 return jsonify(message=f"{tablename} read", success=True, data=data)
             else:
-                return jsonify(
-                    message=f"Invalid query fields: {form.errors}", success=False
-                )
+                return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
 
         @blueprint.route("/api/<tablename>", methods=["PUT"])
         def update(tablename):
@@ -145,9 +141,7 @@ class ModelManager:
                 )
                 return jsonify(message=f"{tablename} updated", success=True, data=data)
             else:
-                return jsonify(
-                    message=f"Invalid query fields: {form.errors}", success=False
-                )
+                return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
 
         @blueprint.route("/api/<tablename>", methods=["DELETE"])
         def delete(tablename):
@@ -157,9 +151,7 @@ class ModelManager:
                 data = get_crud().delete_bulk(model, filter_by=form.filter_params)
                 return jsonify(message=f"{tablename} deleted", success=True, data=data)
             else:
-                return jsonify(
-                    message=f"Invalid query fields: {form.errors}", success=False
-                )
+                return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
 
         app.register_blueprint(blueprint)
         app.extensions[EXTENSION] = self

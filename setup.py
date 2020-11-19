@@ -22,14 +22,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     test_suite="tests",
-    install_requires=[
-        "flask",
-        "sqlalchemy",
-        "flask-sqlalchemy",
-        "wtforms",
-        "flask-wtf",
-        "attrs"
-    ],
+    install_requires=["flask", "sqlalchemy", "flask-sqlalchemy", "wtforms", "flask-wtf", "attrs"],
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",

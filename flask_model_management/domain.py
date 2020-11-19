@@ -140,4 +140,5 @@ class Model:
 
     def form(self, operation, multi_dict):
         from .form import get_form
+
         return get_form(self, operation, multi_dict)
