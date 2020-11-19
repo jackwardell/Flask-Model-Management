@@ -1,9 +1,15 @@
 import attr
-
-from .helpers import get_logger
-from .helpers import get_session
+from flask import current_app
 
 CRUD_OPERATIONS = ("create", "read", "update", "delete")
+
+
+def get_logger():
+    return current_app.logger
+
+
+def get_session():
+    return current_app.extensions["model_management"].db.session
 
 
 @attr.s

@@ -2,7 +2,6 @@ from flask_wtf import FlaskForm
 from wtforms import SubmitField
 
 from .domain import field_from_column
-from .helpers import get_logger
 
 
 class CRUDForm(FlaskForm):
@@ -32,7 +31,7 @@ class CRUDForm(FlaskForm):
             params = (self.insert_params,)
         else:
             raise ValueError("")
-        get_logger().info(f"FORM PARAMS: form params output with: {params}")
+        # get_logger().info(f"FORM PARAMS: form params output with: {params}")
         return params
 
     @property
@@ -59,10 +58,10 @@ class CRUDForm(FlaskForm):
         params = {}
         for k, v in self.data.items():
             if k.startswith(label) and k not in self.HIDDEN_FIELDS and v is not None:
-                get_logger().info(f"FORM FIELD: {k}={v}")
+                # get_logger().info(f"FORM FIELD: {k}={v}")
                 params[self.strip_prefix(k)] = v
 
-        get_logger().info(f"FORM LABELLED PARAMS: '{label}' params output with: {params}")
+        # get_logger().info(f"FORM LABELLED PARAMS: '{label}' params output with: {params}")
         return params
 
     def _get_labelled_fields(self, label):
@@ -72,9 +71,9 @@ class CRUDForm(FlaskForm):
             if field.name not in self.HIDDEN_FIELDS and field.name.startswith(label)
         ]
 
-        get_logger().info(
-            f"FORM LABELLED FIELDS: '{label}' fields found: {[f.name for f in fields]}"
-        )
+        # get_logger().info(
+        #     f"FORM LABELLED FIELDS: '{label}' fields found: {[f.name for f in fields]}"
+        # )
         return fields
 
 
@@ -93,7 +92,7 @@ def get_protocols(operation_name):
 
 def get_form(model, operation, multi_dict):
     form = type(f"{operation.title()}Form", (CRUDForm,), {})
-    get_logger().info(f"FORM CREATION: {operation} form created")
+    # get_logger().info(f"FORM CREATION: {operation} form created")
 
     for column in model.columns:
         protocols = get_protocols(operation)
@@ -101,5 +100,5 @@ def get_form(model, operation, multi_dict):
             name = protocol + "_" + column.name
             setattr(form, name, field_from_column(column))
 
-    get_logger().info(f"FORM INSTANTIATION: form init called with values: {multi_dict}")
+    # get_logger().info(f"FORM INSTANTIATION: form init called with values: {multi_dict}")
     return form(multi_dict, csrf_enabled=False)

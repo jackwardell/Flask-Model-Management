@@ -46,6 +46,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_model_management import ModelManager
 
 db = SQLAlchemy()
+model_manager = ModelManager()
 
 # showing model declaration for the example
 class User(db.Model):
@@ -53,8 +54,6 @@ class User(db.Model):
 
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     username = Column(String, nullable=False)
-
-model_manager = ModelManager()
 
 def create_app():
     app = Flask(__name__)

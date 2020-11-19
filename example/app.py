@@ -8,8 +8,6 @@ from tests.models import db
 from tests.models import populate
 from tests.models import User
 
-# from flask_model_management import ModelManagement
-
 
 def create_app():
     model_manager = ModelManager()

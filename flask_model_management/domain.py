@@ -138,7 +138,6 @@ class Model:
         ]
         return allowed_operations
 
-    # @property
-    # def operations(self):
-    #     operations = [ModelOperation(operation, self) for operation in self.allowed_operations]
-    #     return operations
+    def form(self, operation, multi_dict):
+        from .form import get_form
+        return get_form(self, operation, multi_dict)

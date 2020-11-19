@@ -11,8 +11,6 @@ from flask import url_for
 from .crud import CRUDFailure
 from .crud import get_crud
 from .domain import Model
-from .form import get_form
-from .helpers import get_model
 
 URL_PREFIX = "/model-management"
 APP_NAME = "model_management"
@@ -26,6 +24,10 @@ EXTENSION = "model_management"
 
 def get_model_manager():
     return current_app.extensions["model_management"]
+
+
+def get_model(tablename):
+    return current_app.extensions["model_management"].models[tablename]
 
 
 def get_url(endpoint, **params):
@@ -105,51 +107,59 @@ class ModelManager:
         @blueprint.route("/<tablename>/<operation>")
         def table_operation(tablename, operation):
             model = get_model(tablename)
-            form = get_form(model, operation, request.args)
+            form = model.form(operation, request.args)
             template = "operations/" + operation + ".html.jinja2"
             return render_template(template, model=model, form=form)
 
         @blueprint.route("/api/<tablename>", methods=["POST"])
         def create(tablename):
             model = get_model(tablename)
-            form = get_form(model, "create", request.form)
+            form = model.form("create", request.form)
             if form.validate_on_submit():
                 data = get_crud().create_single(model, insert=form.insert_params)
                 return jsonify(message=f"{tablename} created", success=True, data=data)
             else:
-                return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
+                return jsonify(
+                    message=f"Invalid query fields: {form.errors}", success=False
+                )
 
         @blueprint.route("/api/<tablename>", methods=["GET"])
         def read(tablename):
             model = get_model(tablename)
-            form = get_form(model, "read", request.args)
+            form = model.form("read", request.form)
             if form.validate():
                 data = get_crud().read_bulk(model, filter_by=form.filter_params)
                 return jsonify(message=f"{tablename} read", success=True, data=data)
             else:
-                return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
+                return jsonify(
+                    message=f"Invalid query fields: {form.errors}", success=False
+                )
 
         @blueprint.route("/api/<tablename>", methods=["PUT"])
         def update(tablename):
             model = get_model(tablename)
-            form = get_form(model, "update", request.form)
+            form = model.form("update", request.form)
             if form.validate_on_submit():
                 data = get_crud().update_bulk(
                     model, filter_by=form.filter_params, insert=form.insert_params
                 )
                 return jsonify(message=f"{tablename} updated", success=True, data=data)
             else:
-                return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
+                return jsonify(
+                    message=f"Invalid query fields: {form.errors}", success=False
+                )
 
         @blueprint.route("/api/<tablename>", methods=["DELETE"])
         def delete(tablename):
             model = get_model(tablename)
-            form = get_form(model, "delete", request.form)
+            form = model.form("delete", request.form)
             if form.validate_on_submit():
                 data = get_crud().delete_bulk(model, filter_by=form.filter_params)
                 return jsonify(message=f"{tablename} deleted", success=True, data=data)
             else:
-                return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
+                return jsonify(
+                    message=f"Invalid query fields: {form.errors}", success=False
+                )
 
         app.register_blueprint(blueprint)
         app.extensions[EXTENSION] = self
@@ -160,6 +170,6 @@ class ModelManager:
             __name__,
             url_prefix=self.url_prefix,
             template_folder=TEMPLATES_DIR,
-            static_folder=str(STATIC_DIR)
+            static_folder=str(STATIC_DIR),
         )
         return blueprint
