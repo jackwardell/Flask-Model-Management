@@ -28,6 +28,7 @@ setup(
         "flask-sqlalchemy",
         "wtforms",
         "flask-wtf",
+        "attrs"
     ],
     classifiers=[
         "Programming Language :: Python",

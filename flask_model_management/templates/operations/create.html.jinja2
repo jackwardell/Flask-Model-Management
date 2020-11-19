@@ -52,7 +52,7 @@
 
             if (confirm("Are you sure you want to create this entry?")) {
                 $.ajax({
-                    url: '{{ get_url(endpoints.table_operation_api, tablename=model.name) }}',
+                    url: '{{ get_url("create", tablename=model.name) }}',
                     type: 'POST',
                     data: formData,
                     success: function (result) {

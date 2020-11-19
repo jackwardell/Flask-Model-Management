@@ -89,7 +89,7 @@
 
             if (confirm("Are you sure you want to update these entries?")) {
                 $.ajax({
-                    url: '{{ get_url(endpoints.table_operation_api, tablename=model.name) }}',
+                    url: '{{ get_url("update", tablename=model.name) }}',
                     type: 'PUT',
                     data: formData,
                     success: function (result) {

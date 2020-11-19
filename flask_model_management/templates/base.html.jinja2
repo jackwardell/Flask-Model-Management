@@ -31,7 +31,7 @@
 <body>
 
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="{{ get_url(endpoints.index_view) }}">Flask Model Management</a>
+    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="{{ get_url("index") }}">Flask Model Management</a>
     <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -46,17 +46,17 @@
                 </h6>
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == (request.blueprint + "." + endpoints.index_view) %}active{% endif %}" href="{{ get_url(endpoints.index_view) }}"><span data-feather="home"></span>home</a>
+                        <a class="nav-link {% if request.endpoint == (request.blueprint + ".index") %}active{% endif %}" href="{{ get_url("index") }}"><span data-feather="home"></span>home</a>
                     </li>
                     {% for model_name, model in model_manager.models.items() %}
                         <li class="nav-item">
-                            <a class="nav-link {% if request.view_args['tablename'] == model_name %}active{% endif %}" href="{{ get_url(endpoints.table_view, tablename=model_name) }}"><span data-feather="database"></span>{{ model_name }}</a>
+                            <a class="nav-link {% if request.view_args['tablename'] == model_name %}active{% endif %}" href="{{ get_url("table", tablename=model_name) }}"><span data-feather="database"></span>{{ model_name }}</a>
                         </li>
                         {% if request.view_args['tablename'] == model_name %}
                             <li>
                                 <ul class="nav flex-column">
                                     {% for operation in model.operations %}
-                                        <li class="nav-item ml-3"><a class="nav-link {% if operation in request.view_args.values() %}active{% endif %}" href="{{ get_url(endpoints.table_operation_view, tablename=model.name, operation=operation) }}">{{ get_operation_header(operation) }}</a></li>
+                                        <li class="nav-item ml-3"><a class="nav-link {% if operation in request.view_args.values() %}active{% endif %}" href="{{ get_url("table_operation", tablename=model.name, operation=operation) }}">{{ get_operation_header(operation) }}</a></li>
                                     {% endfor %}
                                 </ul>
                             </li>
@@ -79,14 +79,14 @@
             <div class="mb-3 border-bottom">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        {% if request.endpoint == request.blueprint + "." +  endpoints.index_view %}
+                        {% if request.endpoint == request.blueprint + ".index" %}
                             <li class="breadcrumb-item">models under management</li>
-                        {% elif request.endpoint == request.blueprint + "." + endpoints.table_view %}
-                            <li class="breadcrumb-item active"><a href="{{ get_url(endpoints.index_view) }}">models under management</a></li>
+                        {% elif request.endpoint == request.blueprint + ".table" %}
+                            <li class="breadcrumb-item active"><a href="{{ get_url("index") }}">models under management</a></li>
                             <li class="breadcrumb-item">{{ model.name }}</li>
                         {% else %}
-                            <li class="breadcrumb-item active"><a href="{{ get_url(endpoints.index_view) }}">models under management</a></li>
-                            <li class="breadcrumb-item active"><a href="{{ get_url(endpoints.table_view, tablename=model.name) }}">{{ model.name }}</a></li>
+                            <li class="breadcrumb-item active"><a href="{{ get_url("index") }}">models under management</a></li>
+                            <li class="breadcrumb-item active"><a href="{{ get_url("table", tablename=model.name) }}">{{ model.name }}</a></li>
                             <li class="breadcrumb-item">{{ request.view_args['operation'] }}</li>
                         {% endif %}
                     </ol>

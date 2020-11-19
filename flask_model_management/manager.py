@@ -48,11 +48,11 @@ class ModelManager:
         self.db = db
 
     def register_model(
-        self,
-        model,
-        excluded_columns: list = None,
-        excluded_operations: list = None,
-        decorators: list = None,
+            self,
+            model,
+            excluded_columns: list = None,
+            excluded_operations: list = None,
+            decorators: list = None,
     ):
         params = {
             "excluded_columns": excluded_columns or [],
@@ -73,11 +73,7 @@ class ModelManager:
             "__init__ or init_app"
         )
 
-        from .app import apply_to_app
-
-        blueprint = apply_to_app(self.create_blueprint())
-        app.register_blueprint(blueprint)
-        app.extensions[EXTENSION] = self
+        self.setup_app(app)
 
     def setup_app(self, app):
         blueprint = self.create_blueprint()
@@ -113,7 +109,7 @@ class ModelManager:
             return render_template(template, model=model, form=form)
 
         @blueprint.route("/api/<tablename>", methods=["POST"])
-        def create_table(tablename):
+        def create(tablename):
             model = get_model(tablename)
             form = get_form(model, "create", request.form)
             if form.validate_on_submit():
@@ -123,7 +119,7 @@ class ModelManager:
                 return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
 
         @blueprint.route("/api/<tablename>", methods=["GET"])
-        def read_table(tablename):
+        def read(tablename):
             model = get_model(tablename)
             form = get_form(model, "read", request.args)
             if form.validate():
@@ -133,7 +129,7 @@ class ModelManager:
                 return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
 
         @blueprint.route("/api/<tablename>", methods=["PUT"])
-        def update_table(tablename):
+        def update(tablename):
             model = get_model(tablename)
             form = get_form(model, "update", request.form)
             if form.validate_on_submit():
@@ -145,7 +141,7 @@ class ModelManager:
                 return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
 
         @blueprint.route("/api/<tablename>", methods=["DELETE"])
-        def delete_table(tablename):
+        def delete(tablename):
             model = get_model(tablename)
             form = get_form(model, "delete", request.form)
             if form.validate_on_submit():
@@ -154,8 +150,8 @@ class ModelManager:
             else:
                 return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
 
-        blueprint.context_processor()
         app.register_blueprint(blueprint)
+        app.extensions[EXTENSION] = self
 
     def create_blueprint(self):
         blueprint = Blueprint(

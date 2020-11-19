@@ -52,7 +52,7 @@
 
             if (confirm("Are you sure you want to delete these entries?")) {
                 $.ajax({
-                    url: '{{ get_url(endpoints.table_operation_api, tablename=model.name) }}',
+                    url: '{{ get_url("delete", tablename=model.name) }}',
                     type: 'DELETE',
                     data: formData,
                     success: function (result) {
