@@ -26,7 +26,9 @@
     {# feather #}
     <script src="https://unpkg.com/feather-icons"></script>
 
-    {% include 'style.html.jinja2' %}
+    <script src="{{ get_url('static', filename='js/app.js') }}"></script>
+    <link rel="stylesheet" href="{{ get_url('static', filename='css/style.css') }}">
+
 </head>
 <body>
 

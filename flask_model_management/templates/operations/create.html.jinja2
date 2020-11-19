@@ -30,18 +30,6 @@
 
 {% block scripts %}
     <script>
-        function getFormData(formId, reset) {
-            var formData = $("#" + formId + " :input")
-                .filter(function (index, element) {
-                    return $(element).val() != '';
-                })
-                .serialize();
-            if (reset) {
-                $("#" + formId).trigger("reset");
-            }
-            return formData
-        }
-
         $("#confirm").on('click', function () {
             var formData = getFormData('insert-form', true)
 

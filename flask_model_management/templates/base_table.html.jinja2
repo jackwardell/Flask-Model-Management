@@ -36,7 +36,7 @@
 
             <div class="text-center pt-3 border-bottom">
                 {% if "operation" in request.view_args %}
-                    <h5>{% if request.view_args["operation"] in ("update", "delete") and request.args.get("_model_management_operational_mode") != "single" %}bulk{% endif %} {{ request.view_args["operation"] }}: {{ model.name }}</h5>
+                    <h5>{% if request.view_args["operation"] in ("update", "delete") and request.args.get("_operation_protocol") != "single" %}bulk{% else %}single{% endif %} {{ request.view_args["operation"] }}: {{ model.name }}</h5>
                 {% else %}
                     <h5>model: {{ model.name }}</h5>
                 {% endif %}
@@ -44,11 +44,11 @@
                     <p class="text-muted text-center">use this form to create an entry in {{ model.name }}</p>
                 {% elif request.view_args["operation"] == "read" %}
                     <p class="text-muted text-center">use this form to read from {{ model.name }}</p>
-                {% elif request.view_args["operation"] == "update" and request.args.get("_model_management_operational_mode") != "single" %}
+                {% elif request.view_args["operation"] == "update" and request.args.get("_operation_protocol") != "single" %}
                     <p class="text-muted text-center">use this form bulk update many entries in {{ model.name }} with new values</p>
                 {% elif request.view_args["operation"] == "update" %}
                     <p class="text-muted text-center">use this form to update a single entry from {{ model.name }} </p>
-                {% elif request.view_args["operation"] == "delete" and request.args.get("_model_management_operational_mode") != "single" %}
+                {% elif request.view_args["operation"] == "delete" and request.args.get("_operation_protocol") != "single" %}
                     <p class="text-muted text-center">use this form to bulk delete many entries from {{ model.name }}</p>
                 {% elif request.view_args["operation"] == "delete" %}
                     <p class="text-muted text-center">use this form to delete a single entry from {{ model.name }}</p>

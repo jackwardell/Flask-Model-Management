@@ -74,7 +74,7 @@
                         for (const key in row) {
                             queryData.push("filter_" + key + "=" + row[key])
                         }
-                        var queryString = queryData.join('&')
+                        var queryString = queryData.join('&') + "&_operation_protocol=single"
                         var updateButton = "<a class='btn btn-warning' href='" + updateUrl + queryString + "'><i data-feather='share'></i>update</a>";
                         var deleteButton = "<a class='btn btn-danger' href='" + deleteUrl + queryString + "'><i data-feather='share'></i>delete</a>";
                         var result = "<div class='d-flex justify-content-around'>" + updateButton + deleteButton + "</div>"
@@ -84,18 +84,6 @@
                 },
             ],
         })
-
-        function getFormData(formId, reset) {
-            var formData = $("#" + formId + " :input")
-                .filter(function (index, element) {
-                    return $(element).val() != '';
-                })
-                .serialize();
-            if (reset) {
-                $("#" + formId).trigger("reset");
-            }
-            return formData
-        }
 
         $("#confirm").on('click', function () {
             var formData = getFormData('filter-form', false)

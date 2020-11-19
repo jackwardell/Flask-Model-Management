@@ -10,14 +10,22 @@
                         <div>
                             {% for subfield in field %}
                                 <div class="form-check form-check-inline">
-                                    {{ subfield(class="form-check-input") }}
+                                    {% if request.args.get("_operation_protocol") == "single" %}
+                                        {{ subfield(class="form-check-input", readonly="") }}
+                                    {% else %}
+                                        {{ subfield(class="form-check-input") }}
+                                    {% endif %}
                                     {{ subfield.label(class="form-check-label") }}
                                 </div>
                             {% endfor %}
                         </div>
                     {% else %}
                         {{ field.label }}:
-                        {{ field(class="form-control mb-4") }}
+                        {% if request.args.get("_operation_protocol") == "single" %}
+                            {{ field(class="form-control mb-4", readonly="") }}
+                        {% else %}
+                            {{ field(class="form-control mb-4") }}
+                        {% endif %}
                     {% endif %}
                 </div>
             {% endfor %}
@@ -30,18 +38,6 @@
 
 {% block scripts %}
     <script>
-        function getFormData(formId, reset) {
-            var formData = $("#" + formId + " :input")
-                .filter(function (index, element) {
-                    return $(element).val() != '';
-                })
-                .serialize();
-            if (reset) {
-                $("#" + formId).trigger("reset");
-            }
-            return formData
-        }
-
         $("#confirm").on('click', function () {
             var formData = getFormData('filter-form', true)
 

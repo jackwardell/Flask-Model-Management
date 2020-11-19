@@ -19,6 +19,8 @@ APP_NAME = "model_management"
 
 THIS_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 TEMPLATES_DIR = THIS_DIR / "templates"
+STATIC_DIR = THIS_DIR / "static"
+
 EXTENSION = "model_management"
 
 
@@ -83,7 +85,6 @@ class ModelManager:
             rv = {
                 "get_url": get_url,
                 "model_manager": get_model_manager(),
-                # "endpoints": Endpoints,
             }
             return rv
 
@@ -159,5 +160,6 @@ class ModelManager:
             __name__,
             url_prefix=self.url_prefix,
             template_folder=TEMPLATES_DIR,
+            static_folder=str(STATIC_DIR)
         )
         return blueprint
