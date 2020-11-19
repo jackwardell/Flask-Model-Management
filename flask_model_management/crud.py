@@ -1,7 +1,9 @@
 import attr
 
 from .helpers import get_logger
-from flask_model_management.helpers import get_session
+from .helpers import get_session
+
+CRUD_OPERATIONS = ("create", "read", "update", "delete")
 
 
 @attr.s
@@ -17,8 +19,6 @@ def get_crud():
 @attr.s
 class CRUD:
     """A service that accepts sqlalchemy models performs crud operations on them"""
-
-    OPERATIONS = frozenset({"create", "read", "update", "delete"})
 
     model = attr.ib()
 

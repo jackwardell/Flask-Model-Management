@@ -1,10 +1,8 @@
-import os
 import warnings
 from datetime import date
 from datetime import datetime
 from decimal import Decimal
 from functools import partial
-from pathlib import Path
 
 import attr
 from wtforms import DecimalField
@@ -15,10 +13,7 @@ from wtforms.fields import DateField
 from wtforms.fields import DateTimeField
 from wtforms.fields import RadioField
 
-THIS_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
-TEMPLATES_DIR = THIS_DIR / "templates"
-
-CRUD_OPERATIONS = ("create", "read", "update", "delete")
+from .crud import CRUD_OPERATIONS
 
 
 def true_false_or_none(value):
@@ -115,7 +110,6 @@ class Model:
     excluded_columns = attr.ib(factory=list)
     excluded_operations = attr.ib(factory=list)
     view_decorators = attr.ib(factory=list)
-    callbacks = attr.ib(factory=list)
 
     @property
     def name(self):
@@ -138,23 +132,13 @@ class Model:
         return cols
 
     @property
-    def allowed_operations(self):
+    def operations(self):
         allowed_operations = [
             operation for operation in CRUD_OPERATIONS if operation not in self.excluded_operations
         ]
         return allowed_operations
 
-    @property
-    def operations(self):
-        operations = [ModelOperation(operation, self) for operation in self.allowed_operations]
-        return operations
-
     # @property
-    # def primary_key(self):
-    #     return [c for c in self.columns if c.primary_key].pop()
-
-
-@attr.s
-class ModelOperation:
-    name = attr.ib()
-    model = attr.ib()
+    # def operations(self):
+    #     operations = [ModelOperation(operation, self) for operation in self.allowed_operations]
+    #     return operations

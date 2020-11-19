@@ -2,7 +2,7 @@ from flask import current_app
 
 
 def get_logger():
-    return type("logger", (), {"info": lambda *args: print(*args)})
+    return current_app.logger
 
 
 def get_session():

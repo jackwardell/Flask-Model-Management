@@ -56,7 +56,7 @@
                             <li>
                                 <ul class="nav flex-column">
                                     {% for operation in model.operations %}
-                                        <li class="nav-item ml-3"><a class="nav-link {% if operation.name in request.view_args.values() %}active{% endif %}" href="{{ get_url(endpoints.table_operation_view, tablename=model.name, operation=operation.name) }}">{{ get_operation_header(operation.name) }}</a></li>
+                                        <li class="nav-item ml-3"><a class="nav-link {% if operation in request.view_args.values() %}active{% endif %}" href="{{ get_url(endpoints.table_operation_view, tablename=model.name, operation=operation) }}">{{ get_operation_header(operation) }}</a></li>
                                     {% endfor %}
                                 </ul>
                             </li>

@@ -3,8 +3,16 @@ from pathlib import Path
 
 from flask import Blueprint
 from flask import current_app
+from flask import jsonify
+from flask import render_template
+from flask import request
+from flask import url_for
 
+from .crud import CRUDFailure
+from .crud import get_crud
 from .domain import Model
+from .form import get_form
+from .helpers import get_model
 
 URL_PREFIX = "/model-management"
 APP_NAME = "model_management"
@@ -16,6 +24,11 @@ EXTENSION = "model_management"
 
 def get_model_manager():
     return current_app.extensions["model_management"]
+
+
+def get_url(endpoint, **params):
+    location = get_model_manager().name + "." + endpoint
+    return url_for(location, **params)
 
 
 class ModelManager:
@@ -68,6 +81,79 @@ class ModelManager:
 
     def setup_app(self, app):
         blueprint = self.create_blueprint()
+
+        @blueprint.context_processor
+        def processors():
+            rv = {
+                "get_url": get_url,
+                "model_manager": get_model_manager(),
+                # "endpoints": Endpoints,
+            }
+            return rv
+
+        @blueprint.errorhandler(CRUDFailure)
+        def handle_crud_failure(crud_failure):
+            return jsonify(message=crud_failure.message, success=False)
+
+        # have chosen this way to design endpoints as it's most common
+        @blueprint.route("/")
+        def index():
+            return render_template("index.html.jinja2")
+
+        @blueprint.route("/<tablename>/")
+        def table(tablename):
+            model = get_model(tablename)
+            return render_template("table.html.jinja2", model=model)
+
+        @blueprint.route("/<tablename>/<operation>")
+        def table_operation(tablename, operation):
+            model = get_model(tablename)
+            form = get_form(model, operation, request.args)
+            template = "operations/" + operation + ".html.jinja2"
+            return render_template(template, model=model, form=form)
+
+        @blueprint.route("/api/<tablename>", methods=["POST"])
+        def create_table(tablename):
+            model = get_model(tablename)
+            form = get_form(model, "create", request.form)
+            if form.validate_on_submit():
+                data = get_crud().create_single(model, insert=form.insert_params)
+                return jsonify(message=f"{tablename} created", success=True, data=data)
+            else:
+                return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
+
+        @blueprint.route("/api/<tablename>", methods=["GET"])
+        def read_table(tablename):
+            model = get_model(tablename)
+            form = get_form(model, "read", request.args)
+            if form.validate():
+                data = get_crud().read_bulk(model, filter_by=form.filter_params)
+                return jsonify(message=f"{tablename} read", success=True, data=data)
+            else:
+                return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
+
+        @blueprint.route("/api/<tablename>", methods=["PUT"])
+        def update_table(tablename):
+            model = get_model(tablename)
+            form = get_form(model, "update", request.form)
+            if form.validate_on_submit():
+                data = get_crud().update_bulk(
+                    model, filter_by=form.filter_params, insert=form.insert_params
+                )
+                return jsonify(message=f"{tablename} updated", success=True, data=data)
+            else:
+                return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
+
+        @blueprint.route("/api/<tablename>", methods=["DELETE"])
+        def delete_table(tablename):
+            model = get_model(tablename)
+            form = get_form(model, "delete", request.form)
+            if form.validate_on_submit():
+                data = get_crud().delete_bulk(model, filter_by=form.filter_params)
+                return jsonify(message=f"{tablename} deleted", success=True, data=data)
+            else:
+                return jsonify(message=f"Invalid query fields: {form.errors}", success=False)
+
         blueprint.context_processor()
         app.register_blueprint(blueprint)
 

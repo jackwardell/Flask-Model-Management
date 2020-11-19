@@ -70,10 +70,11 @@
                     "render": function (data, type, row) {
                         var updateUrl = "{{ get_url(endpoints.table_operation_view, tablename=model.name, operation='update') }}?";
                         var deleteUrl = "{{ get_url(endpoints.table_operation_view, tablename=model.name, operation='delete') }}?";
-                        var queryString = "";
+                        var queryData = [];
                         for (const key in row) {
-                            queryString += "filter_" + key + "=" + row[key] + "&"
+                            queryData.push("filter_" + key + "=" + row[key])
                         }
+                        var queryString = queryData.join('&')
                         var updateButton = "<a class='btn btn-warning' href='" + updateUrl + queryString + "'><i data-feather='share'></i>update</a>";
                         var deleteButton = "<a class='btn btn-danger' href='" + deleteUrl + queryString + "'><i data-feather='share'></i>delete</a>";
                         var result = "<div class='d-flex justify-content-around'>" + updateButton + deleteButton + "</div>"
@@ -82,9 +83,6 @@
                     "targets": -1
                 },
             ],
-            "createdRow": function (row, data, index) {
-                console.log(row, data, index)
-            }
         })
 
         function getFormData(formId, reset) {
