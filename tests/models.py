@@ -127,4 +127,6 @@ def populate(session):
     for user_id, (first_name, last_name, is_admin, email_address) in enumerate(USERS):
         session.add(User(first_name=first_name, last_name=last_name, is_admin=is_admin))
         session.add(Address(user_id=user_id, email_address=email_address))
+    for row in random_type_table_mock_data:
+        session.add(RandomTypeTable(**row))
     session.commit()

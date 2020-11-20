@@ -4,13 +4,16 @@ import tempfile
 
 import pytest
 from flask import abort
+from flask import Flask
 from flask import request
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 
+from flask_model_management.manager import ModelManager
+from tests.models import db
+from tests.models import populate
 
-db = SQLAlchemy()
+# from flask_sqlalchemy import SQLAlchemy
 
 Base = declarative_base()
 
@@ -23,6 +26,31 @@ def request_decorator(func):
             abort(404)
 
     return decorator
+
+
+@pytest.fixture(scope="function")
+def client_factory(sqlalchemy_url):
+    model_manager = ModelManager()
+
+    app = Flask(__name__)
+    app.config["SECRET_KEY"] = "hello world"
+    app.config["SQLALCHEMY_DATABASE_URI"] = sqlalchemy_url
+
+    db.init_app(app)
+
+    model_manager.init_app(app, db)
+
+    from .models import User, Address, RandomTypeTable
+
+    model_manager.register_model(User)
+    model_manager.register_model(Address)
+    model_manager.register_model(RandomTypeTable)
+
+    with app.app_context():
+        db.create_all()
+        populate(db.session)
+
+    return app.test_client()
 
 
 # def create_app():
@@ -48,14 +76,6 @@ def request_decorator(func):
 #         populate(db.session)
 #
 #     return app
-
-
-# @contextlib.contextmanager
-# def sqlalchemy_url():
-#     directory, file = tempfile.mkstemp()
-#     url = "sqlite:///" + file + ".db"
-#     yield url
-#     os.close(directory)
 
 
 @pytest.fixture(scope="function")
