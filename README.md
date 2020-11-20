@@ -1,11 +1,17 @@
 # Flask-Model-Management
 This is a Flask extension for managing Flask-SQLAlchemy models
-This is built using:
+The frontend is built using:
 * Bootstrap4 (https://getbootstrap.com/)
 * JQuery (https://jquery.com/)
 * Datatables (https://datatables.net/)
 * Feather Icons (https://feathericons.com/)
 * This bootstrap theme (https://getbootstrap.com/docs/4.5/examples/dashboard/)
+* Jinja2
+
+The backend is built using:
+* Flask-SQLAlchemy & SQLAlchemy
+* Flask-WTF & WTForms
+
 
 # Status: In Alpha Development
 BE WARNED: INSTALLING CRUD APPLICATIONS INTO PRODUCTION SERVERS ALLOWS USERS TO PERFORM POTENTIALLY IRREVERSIBLE DATA OPERATIONS

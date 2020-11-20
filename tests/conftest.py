@@ -9,10 +9,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 
-# from flask_debugtoolbar import DebugToolbarExtension
 
 db = SQLAlchemy()
-# toolbar = DebugToolbarExtension()
 
 Base = declarative_base()
 
