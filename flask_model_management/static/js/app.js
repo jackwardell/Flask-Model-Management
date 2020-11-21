@@ -9,3 +9,12 @@ function getFormData(formId, reset) {
     }
     return formData
 }
+
+$(".date").flatpickr({
+    wrap: true
+});
+
+$(".datetime").flatpickr({
+    wrap: true,
+    enableTime: true,
+});

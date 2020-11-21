@@ -1,0 +1,36 @@
+<div class="form-group mb-4">
+    {% if field.type == 'RadioField' %}
+        {{ field.label }}:
+        <div>
+            {% for subfield in field %}
+                <div class="form-check form-check-inline">
+                    {{ subfield(class="form-check-input") }}
+                    {{ subfield.label(class="form-check-label") }}
+                </div>
+            {% endfor %}
+        </div>
+    {% elif field.type == 'DateField' %}
+        {{ field.label }}:
+        <div class="input-group date">
+            {{ field(class="form-control", data_input="",  style="background-color:transparent") }}
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <i data-feather="calendar" data-toggle></i>
+                </div>
+            </div>
+        </div>
+    {% elif field.type == 'DateTimeField' %}
+        {{ field.label }}:
+        <div class="input-group datetime">
+            {{ field(class="form-control", data_input="",  style="background-color:transparent") }}
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <i data-feather="calendar" data-toggle></i>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        {{ field.label }}:
+        {{ field(class="form-control") }}
+    {% endif %}
+</div>

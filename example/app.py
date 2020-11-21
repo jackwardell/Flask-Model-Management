@@ -6,6 +6,7 @@ from flask_model_management.manager import ModelManager
 from tests.models import Address
 from tests.models import db
 from tests.models import populate
+from tests.models import RandomTypeTable
 from tests.models import User
 
 
@@ -24,6 +25,7 @@ def create_app():
 
     model_manager.register_model(User)
     model_manager.register_model(Address)
+    model_manager.register_model(RandomTypeTable)
 
     model_manager.init_app(app, db)
     toolbar.init_app(app)

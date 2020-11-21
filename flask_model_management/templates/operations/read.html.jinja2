@@ -4,33 +4,20 @@
 {% block form_card %}
     <form id="filter-form">
         <div role="form" id="form-content">
-            {% for fields in form.fields | batch(4) %}
+            {% for fields in form.filter_fields | batch(4) %}
                 <div class="form-row d-flex justify-content-center">
-                    {% for field in form.fields %}
+                    {% for field in fields %}
                         <div class="form-group col-3">
-                            {% if field.type == 'RadioField' %}
-                                {{ field.label(class="col-form-label") }}:
-                                <div class="text-center">
-                                    {% for subfield in field %}
-                                        <div class="form-check form-check-inline">
-                                            {{ subfield(class="form-check-input") }}
-                                            {{ subfield.label(class="form-check-label") }}
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                {{ field.label(class="col-form-label") }}:
-                                {{ field(class="form-control col-12") }}
-                            {% endif %}
+                            {% include 'components/fields.html.jinja2' %}
                         </div>
                     {% endfor %}
                 </div>
             {% endfor %}
         </div>
-        <div class="form-group text-center">
-            {{ form.confirm(class="btn btn-primary", value="read") }}
-        </div>
     </form>
+    <div class="form-group text-center">
+        {{ form.confirm(class="btn btn-primary", value="read") }}
+    </div>
 {% endblock %}
 
 {% block body %}

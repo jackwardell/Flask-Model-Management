@@ -101,4 +101,4 @@ def get_form(model, operation, multi_dict):
             setattr(form, name, field_from_column(column))
 
     # get_logger().info(f"FORM INSTANTIATION: form init called with values: {multi_dict}")
-    return form(multi_dict, csrf_enabled=False)
+    return form(multi_dict, meta={"csrf": False})

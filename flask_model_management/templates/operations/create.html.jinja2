@@ -2,30 +2,13 @@
 
 {% block form_card %}
     <form id="insert-form">
-        <div role="form" id="form-content">
-            {% for field in form.fields %}
-                <div class="form-group">
-                    {% if field.type == 'RadioField' %}
-                        {{ field.label }}:
-                        <div>
-                            {% for subfield in field %}
-                                <div class="form-check form-check-inline">
-                                    {{ subfield(class="form-check-input") }}
-                                    {{ subfield.label(class="form-check-label") }}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ field.label }}:
-                        {{ field(class="form-control mb-4") }}
-                    {% endif %}
-                </div>
-            {% endfor %}
-            <div class="form-group text-center">
-                {{ form.confirm(class="btn btn-success", value="create") }}
-            </div>
-        </div>
+        {% for field in form.insert_fields %}
+            {% include 'components/fields.html.jinja2' %}
+        {% endfor %}
     </form>
+    <div class="form-group text-center">
+        {{ form.confirm(class="btn btn-success", value="create") }}
+    </div>
 {% endblock %}
 
 {% block scripts %}
@@ -54,7 +37,10 @@
                     }
                 })
             }
-            return false;
+            {#return false;#}
         })
+    </script>
+    <script>
+
     </script>
 {% endblock %}

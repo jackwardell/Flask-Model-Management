@@ -8,6 +8,9 @@ The frontend is built using:
 * This bootstrap theme (https://getbootstrap.com/docs/4.5/examples/dashboard/)
 * Jinja2
 
+NB: all the above JS & CSS are bundled in currently
+
+
 The backend is built using:
 * Flask-SQLAlchemy & SQLAlchemy
 * Flask-WTF & WTForms

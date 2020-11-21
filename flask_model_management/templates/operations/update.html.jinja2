@@ -2,68 +2,26 @@
 
 {% block form_card %}
     <div class="row">
-        <div class="col-6">
+        <div class="col-md-6">
             <div class="mb-3">
                 <h6 class="card-title text-center m-0">find these entries</h6>
                 <p class="text-muted text-center">query the table by these values to get the entries you want to update</p>
             </div>
             <form id="filter-form">
-                <div role="form" id="form-content">
-                    {% for field in form.filter_fields %}
-                        <div class="form-group">
-                            {% if field.type == 'RadioField' %}
-                                {{ field.label }}:
-                                <div>
-                                    {% for subfield in field %}
-                                        <div class="form-check form-check-inline">
-                                            {% if request.args.get("_operation_protocol") == "single" %}
-                                                {{ subfield(class="form-check-input", readonly="") }}
-                                            {% else %}
-                                                {{ subfield(class="form-check-input") }}
-                                            {% endif %}
-                                            {{ subfield.label(class="form-check-label") }}
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                {{ field.label }}:
-                                {% if request.args.get("_operation_protocol") == "single" %}
-                                    {{ field(class="form-control mb-4", readonly="") }}
-                                {% else %}
-                                    {{ field(class="form-control mb-4") }}
-                                {% endif %}
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
+                {% for field in form.filter_fields %}
+                    {% include 'components/fields.html.jinja2' %}
+                {% endfor %}
             </form>
         </div>
-        <div class="col-6">
+        <div class="col-md-6">
             <div class="mb-3">
                 <h6 class="card-title text-center m-0">change to these values</h6>
                 <p class="text-muted text-center">then update those entries with the values inputted to the fields below</p>
             </div>
             <form id="insert-form">
-                <div role="form" id="form-content">
-                    {% for field in form.insert_fields %}
-                        <div class="form-group">
-                            {% if field.type == 'RadioField' %}
-                                {{ field.label }}:
-                                <div>
-                                    {% for subfield in field %}
-                                        <div class="form-check form-check-inline">
-                                            {{ subfield(class="form-check-input") }}
-                                            {{ subfield.label(class="form-check-label") }}
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                {{ field.label }}:
-                                {{ field(class="form-control mb-4") }}
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
+                {% for field in form.insert_fields %}
+                    {% include 'components/fields.html.jinja2' %}
+                {% endfor %}
             </form>
         </div>
     </div>

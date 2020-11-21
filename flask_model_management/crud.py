@@ -99,7 +99,9 @@ class CRUDApplication:
 
     @staticmethod
     def parse_entry(row):
-        return {k: v for k, v in row.__dict__.items() if k != "_sa_instance_state"}
+        return {
+            k: str(v) if v else "NULL" for k, v in row.__dict__.items() if k != "_sa_instance_state"
+        }
 
     def create_single(self, model, insert):
         get_logger().info(f"CRUD APP CREATE: insert: {insert}")

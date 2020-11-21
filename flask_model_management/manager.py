@@ -124,7 +124,7 @@ class ModelManager:
         @blueprint.route("/api/<tablename>", methods=["GET"])
         def read(tablename):
             model = get_model(tablename)
-            form = model.form("read", request.form)
+            form = model.form("read", request.args)
             if form.validate():
                 data = get_crud().read_bulk(model, filter_by=form.filter_params)
                 return jsonify(message=f"{tablename} read", success=True, data=data)
