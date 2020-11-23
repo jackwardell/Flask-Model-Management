@@ -9,7 +9,7 @@
             </div>
             <form id="filter-form">
                 {% for field in form.filter_fields %}
-                    {% include 'components/fields.html.jinja2' %}
+                    {{ make_field(field, readonly=is_single) }}
                 {% endfor %}
             </form>
         </div>
@@ -20,7 +20,7 @@
             </div>
             <form id="insert-form">
                 {% for field in form.insert_fields %}
-                    {% include 'components/fields.html.jinja2' %}
+                    {{ make_field(field) }}
                 {% endfor %}
             </form>
         </div>

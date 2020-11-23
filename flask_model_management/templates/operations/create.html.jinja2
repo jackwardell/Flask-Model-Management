@@ -3,7 +3,7 @@
 {% block form_card %}
     <form id="insert-form">
         {% for field in form.insert_fields %}
-            {% include 'components/fields.html.jinja2' %}
+            {{ make_field(field) }}
         {% endfor %}
     </form>
     <div class="form-group text-center">

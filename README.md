@@ -16,6 +16,11 @@ The backend is built using:
 * Flask-SQLAlchemy & SQLAlchemy
 * Flask-WTF & WTForms
 
+# UI
+Home page
+![home page](img/home_view.png)
+
+
 
 # Status: In Alpha Development
 BE WARNED: INSTALLING CRUD APPLICATIONS INTO PRODUCTION SERVERS ALLOWS USERS TO PERFORM POTENTIALLY IRREVERSIBLE DATA OPERATIONS

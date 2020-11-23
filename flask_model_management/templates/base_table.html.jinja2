@@ -1,5 +1,9 @@
 {% extends 'base.html.jinja2' %}
+
 {% from 'components/macros.html.jinja2' import get_operation_header %}
+{% from 'components/fields.html.jinja2' import make_field %}
+
+{% set is_single = true if request.args.get("_operation_protocol") == "single" else false %}
 
 {% block main %}
     {% include 'components/flash.html.jinja2' %}

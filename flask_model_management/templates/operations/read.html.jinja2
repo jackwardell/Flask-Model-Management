@@ -8,7 +8,7 @@
                 <div class="form-row d-flex justify-content-center">
                     {% for field in fields %}
                         <div class="form-group col-3">
-                            {% include 'components/fields.html.jinja2' %}
+                            {{ make_field(field) }}
                         </div>
                     {% endfor %}
                 </div>

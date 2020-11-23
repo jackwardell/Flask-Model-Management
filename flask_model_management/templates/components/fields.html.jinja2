@@ -1,36 +1,51 @@
-<div class="form-group mb-4">
-    {% if field.type == 'RadioField' %}
+{% macro make_field(field, readonly=false) %}
+    <div class="form-group mb-4">
         {{ field.label }}:
-        <div>
-            {% for subfield in field %}
-                <div class="form-check form-check-inline">
-                    {{ subfield(class="form-check-input") }}
-                    {{ subfield.label(class="form-check-label") }}
-                </div>
-            {% endfor %}
-        </div>
-    {% elif field.type == 'DateField' %}
-        {{ field.label }}:
-        <div class="input-group date">
-            {{ field(class="form-control", data_input="",  style="background-color:transparent") }}
-            <div class="input-group-append">
-                <div class="input-group-text">
-                    <i data-feather="calendar" data-toggle></i>
+        {% if field.type == 'RadioField' %}
+            <div>
+                {% for subfield in field %}
+                    <div class="form-check form-check-inline">
+                        {% if readonly %}
+                            {{ subfield(class="form-check-input", readonly="") }}
+                        {% else %}
+                            {{ subfield(class="form-check-input") }}
+                        {% endif %}
+                        {{ subfield.label(class="form-check-label") }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% elif field.type == 'DateField' %}
+            <div class="input-group date">
+                {% if readonly %}
+                    {{ field(class="form-control", data_input="",  style="background-color:transparent", readonly="") }}
+                {% else %}
+                    {{ field(class="form-control", data_input="",  style="background-color:transparent") }}
+                {% endif %}
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <i data-feather="calendar" data-toggle></i>
+                    </div>
                 </div>
             </div>
-        </div>
-    {% elif field.type == 'DateTimeField' %}
-        {{ field.label }}:
-        <div class="input-group datetime">
-            {{ field(class="form-control", data_input="",  style="background-color:transparent") }}
-            <div class="input-group-append">
-                <div class="input-group-text">
-                    <i data-feather="calendar" data-toggle></i>
+        {% elif field.type == 'DateTimeField' %}
+            <div class="input-group datetime">
+                {% if readonly %}
+                    {{ field(class="form-control", data_input="",  style="background-color:transparent", readonly="") }}
+                {% else %}
+                    {{ field(class="form-control", data_input="",  style="background-color:transparent") }}
+                {% endif %}
+                <div class="input-group-append">
+                    <div class="input-group-text">
+                        <i data-feather="calendar" data-toggle></i>
+                    </div>
                 </div>
             </div>
-        </div>
-    {% else %}
-        {{ field.label }}:
-        {{ field(class="form-control") }}
-    {% endif %}
-</div>
+        {% else %}
+            {% if readonly %}
+                {{ field(class="form-control", readonly="") }}
+            {% else %}
+                {{ field(class="form-control") }}
+            {% endif %}
+        {% endif %}
+    </div>
+{% endmacro %}
