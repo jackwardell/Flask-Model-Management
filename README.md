@@ -1,5 +1,6 @@
 # Flask-Model-Management
-This is a Flask extension for managing Flask-SQLAlchemy models
+This is a Flask extension for managing Flask-SQLAlchemy models.
+
 The frontend is built using:
 * Bootstrap4 (https://getbootstrap.com/)
 * JQuery (https://jquery.com/)
@@ -16,17 +17,37 @@ The backend is built using:
 * Flask-SQLAlchemy & SQLAlchemy
 * Flask-WTF & WTForms
 
-# UI
-Home page
+# UI Examples
+* Home page
 ![home page](img/home_view.png)
 
+* Table page
+![table page](img/table_view.png)
+
+* Create (single entry) page
+![create single page](img/single_create_view.png)
+
+* Read (bulk entries) page
+![read bulk page](img/bulk_read_view.png)
+
+* Update (single) page
+![update single page](img/single_update_view.png)
+
+* Update (bulk) page
+![update single page](img/bulk_update_view.png)
+
+* Delete (single) page
+![delete single page](img/single_delete_view.png)
+
+* Delete (bulk) page
+![delete single page](img/bulk_delete_view.png)
 
 
 # Status: In Alpha Development
 BE WARNED: INSTALLING CRUD APPLICATIONS INTO PRODUCTION SERVERS ALLOWS USERS TO PERFORM POTENTIALLY IRREVERSIBLE DATA OPERATIONS
 
 # Install
-* pip install:
+pip install:
 ```
 pip install flask_model_management
 ```
@@ -39,6 +60,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_model_management import ModelManager
 
 app = Flask(__name__)
+# from flask_sqlalchemy docs
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 db = SQLAlchemy(app)
 model_manager = ModelManager(app, db)
@@ -47,7 +69,7 @@ model_manager = ModelManager(app, db)
 class User(db.Model):
     __tablename__ = "user"
 
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    id = Column(Integer, primary_key=True)
     username = Column(String)
 
 model_manager.register_model(User)
@@ -67,7 +89,7 @@ model_manager = ModelManager()
 class User(db.Model):
     __tablename__ = "user"
 
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    id = Column(Integer, primary_key=True)
     username = Column(String, nullable=False)
 
 def create_app():
@@ -81,3 +103,4 @@ def create_app():
 
 # How it works
 * Once you plug-in this extension then @ <YOUR-BASE-URL (e.g. http://127.0.0.1:5000)>/model-management/ you will find the home dashboard
+* You can

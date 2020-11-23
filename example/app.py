@@ -15,7 +15,7 @@ def create_app():
     toolbar = DebugToolbarExtension()
 
     app = Flask(__name__)
-    app.debug = True
+    app.debug = False
     app.config["SECRET_KEY"] = "hello world"
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
     app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
