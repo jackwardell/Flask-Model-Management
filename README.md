@@ -1,5 +1,6 @@
 # Flask-Model-Management
-This is a Flask extension for managing Flask-SQLAlchemy models.
+* This is a Flask extension for managing Flask-SQLAlchemy models.
+* This extension allows the user to perform CRUD (create, read, update, delete) operations on the models registered using the UI
 
 The frontend is built using:
 * Bootstrap4 (https://getbootstrap.com/)
@@ -102,5 +103,34 @@ def create_app():
 ```
 
 # How it works
-* Once you plug-in this extension then @ <YOUR-BASE-URL (e.g. http://127.0.0.1:5000)>/model-management/ you will find the home dashboard
-* You can
+### frontend perspective
+* Once you plug-in this extension then at: <YOUR-BASE-URL>/model-management/ you will find the home dashboard
+* You can browse around the pages and perform CRUD operations on your models
+
+### backend perspective
+* A blueprint is added to your app called `model_management` with the url prefix `/model-management`
+* 4 url routes are added to this blueprint:
+  - A home page at: `/`
+  - A table page at: `/<tablename>`
+  - An operation page at: `/<tablename>/<operation>`
+    - Operations limited to: create, read, update or delete
+  - An operation API at: `/api/<tablename>`
+    - CRUD operations are mapped to HTTP methods:
+      - POST = create
+      - GET = read
+      - PUT = update
+      - DELETE = delete
+* The data from the frontend forms are then sent via ajax request to the operation API with the required data and HTTP method
+* WARNING: this library will therefore wrap your Flask-SQLAlchemy models with an API endpoint
+* There are 2 'protocols': single & bulk
+  - single is for CRUD applied to one entry
+    - always applied to: CREATE
+    - sometimes applied to: UPDATE, DELETE
+  - bulk is for CRUD applied to multiple entries (and is default in all but CREATE)
+    - always applied to: READ
+    - sometimes (default) applied to: UPDATE, DELETE
+
+### Todo
+* re-add decorators to models
+* excluded columns
+* excluded operations
