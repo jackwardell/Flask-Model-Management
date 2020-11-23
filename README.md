@@ -6,9 +6,10 @@ The frontend is built using:
 * Datatables (https://datatables.net/)
 * Feather Icons (https://feathericons.com/)
 * This bootstrap theme (https://getbootstrap.com/docs/4.5/examples/dashboard/)
+* Flatpickr for date(time) fields (https://flatpickr.js.org/)
 * Jinja2
 
-NB: all the above JS & CSS are bundled in currently
+NB: all the above JS & CSS are bundled into this package currently
 
 
 The backend is built using:
@@ -72,3 +73,6 @@ def create_app():
 
     model_manager.register_model(User, nullable=False)
 ```
+
+# How it works
+* Once you plug-in this extension then @ <YOUR-BASE-URL (e.g. http://127.0.0.1:5000)>/model-management/ you will find the home dashboard
