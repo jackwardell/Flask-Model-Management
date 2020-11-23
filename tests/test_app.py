@@ -57,18 +57,18 @@ def test_operation(client_factory, operation, models_and_columns):
         assert col in resp.data.decode()
 
 
-@pytest.mark.parametrize("operation", CRUD_OPERATIONS)
-@pytest.mark.parametrize("models_and_columns", MODELS_AND_COLUMNS)
-def test_operation_excluded(client_factory, operation, models_and_columns):
-    model, columns = models_and_columns
-
-    client = client_factory(model, excluded_operations=[operation])
-    resp = client.get(f"/model-management/{model.__tablename__}/{operation}")
-    assert resp.status_code == 404
-
-    for crud_operation in CRUD_OPERATIONS - {operation}:
-        resp = client.get(f"/model-management/{model.__tablename__}/{crud_operation}")
-        assert resp.status_code == 200
+# @pytest.mark.parametrize("operation", CRUD_OPERATIONS)
+# @pytest.mark.parametrize("models_and_columns", MODELS_AND_COLUMNS)
+# def test_operation_excluded(client_factory, operation, models_and_columns):
+#     model, columns = models_and_columns
+#
+#     client = client_factory(model, excluded_operations=[operation])
+#     resp = client.get(f"/model-management/{model.__tablename__}/{operation}")
+#     assert resp.status_code == 404
+#
+#     for crud_operation in CRUD_OPERATIONS - {operation}:
+#         resp = client.get(f"/model-management/{model.__tablename__}/{crud_operation}")
+#         assert resp.status_code == 200
 
 
 # @pytest.mark.parametrize("operation", CRUD_OPERATIONS)
