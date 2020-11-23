@@ -4,7 +4,7 @@ from pathlib import Path
 from setuptools import find_packages
 from setuptools import setup
 
-__version__ = "0.1.2"
+__version__ = "0.1.0"
 ROOT_DIR = Path(".")
 
 with open(str(ROOT_DIR / "README.md")) as readme:
@@ -22,7 +22,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     test_suite="tests",
-    install_requires=["flask", "sqlalchemy", "flask-sqlalchemy", "wtforms", "flask-wtf", "attrs"],
+    install_requires=["Flask", "Flask-SQLAlchemy", "WTForms", "Flask-WTF", "attrs"],
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
