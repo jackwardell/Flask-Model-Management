@@ -57,11 +57,7 @@ class ColumnType:
 
     @classmethod
     def from_sqlalchemy_col_type(cls, col_type):
-        # try:
         return cls(col_type.python_type, str(col_type))
-        # except:
-        #     import IPython
-        #     IPython.embed()
 
     def __eq__(self, other):
         return self.python_type is other
