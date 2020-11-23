@@ -18,31 +18,6 @@ The backend is built using:
 * Flask-SQLAlchemy & SQLAlchemy
 * Flask-WTF & WTForms
 
-# UI Examples
-* Home page
-![home page](img/home_view.png)
-
-* Table page
-![table page](img/table_view.png)
-
-* Create (single entry) page
-![create single page](img/single_create_view.png)
-
-* Read (bulk entries) page
-![read bulk page](img/bulk_read_view.png)
-
-* Update (single) page
-![update single page](img/single_update_view.png)
-
-* Update (bulk) page
-![update single page](img/bulk_update_view.png)
-
-* Delete (single) page
-![delete single page](img/single_delete_view.png)
-
-* Delete (bulk) page
-![delete single page](img/bulk_delete_view.png)
-
 
 # Status: In Alpha Development
 BE WARNED: INSTALLING CRUD APPLICATIONS INTO PRODUCTION SERVERS ALLOWS USERS TO PERFORM POTENTIALLY IRREVERSIBLE DATA OPERATIONS
@@ -101,6 +76,32 @@ def create_app():
 
     model_manager.register_model(User, nullable=False)
 ```
+
+
+# UI Examples
+* Home page
+![home page](img/home_view.png)
+
+* Table page
+![table page](img/table_view.png)
+
+* Create (single entry) page
+![create single page](img/single_create_view.png)
+
+* Read (bulk entries) page
+![read bulk page](img/bulk_read_view.png)
+
+* Update (single) page
+![update single page](img/single_update_view.png)
+
+* Update (bulk) page
+![update single page](img/bulk_update_view.png)
+
+* Delete (single) page
+![delete single page](img/single_delete_view.png)
+
+* Delete (bulk) page
+![delete single page](img/bulk_delete_view.png)
 
 # How it works
 ### frontend perspective
