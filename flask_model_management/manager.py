@@ -54,17 +54,17 @@ class ModelManager:
     def register_model(
         self,
         model,
-        excluded_columns: list = None,
-        excluded_operations: list = None,
-        decorators: list = None,
+        # excluded_columns: list = None,
+        # excluded_operations: list = None,
+        # decorators: list = None,
     ):
-        params = {
-            "excluded_columns": excluded_columns or [],
-            "excluded_operations": excluded_operations or [],
-            "view_decorators": decorators or [],
-        }
+        # params = {
+        #     "excluded_columns": excluded_columns or [],
+        #     "excluded_operations": excluded_operations or [],
+        #     "view_decorators": decorators or [],
+        # }
 
-        model = Model(model, **params)
+        model = Model(model)
 
         self.models[model.name] = model
 
